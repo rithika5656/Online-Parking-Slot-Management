@@ -167,8 +167,10 @@ function bookSlot(slotId, vehicleNum, owner, email) {
             time: new Date().toLocaleString()
         });
 
+        soundManager.play('success'); // Play Success Sound
         return true;
     }
+    soundManager.play('error'); // Play Error Sound
     return false;
 }
 
