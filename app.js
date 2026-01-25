@@ -192,10 +192,18 @@ function bookSlot(slotId, vehicleNum, owner, email, duration) {
 function simulateParking(slotId) {
     // Check Lite Mode (disable animations for performance/recording)
     const settings = JSON.parse(localStorage.getItem('emailSettings')) || {};
-    if (settings.liteMode) return;
+    if (settings.liteMode) {
+        console.log("3D Animation skipped (Lite Mode active)");
+        // Optional: Notify user once so they know why
+        // showNotification('3D Animation Skipped (Lite Mode)', 'info'); 
+        return;
+    }
 
     const slotEl = document.querySelector(`.slot[data-id="${slotId}"]`);
-    if (!slotEl) return;
+    if (!slotEl) {
+        console.error("Target slot for animation not found:", slotId);
+        return;
+    }
 
     // Create Car Element
     const car = document.createElement('div');
