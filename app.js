@@ -402,6 +402,7 @@ function releaseSlot(slotId) {
         }
         refreshUI(); // Update other stats
 
+        soundManager.play('success'); // Play Success Sound
         showNotification('Slot released successfully!', 'success');
 
         // Optional: Notify release
