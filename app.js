@@ -9,6 +9,7 @@ const totalCount = document.getElementById('total-count');
 const bookForm = document.getElementById('book-form');
 const vehicleNumber = document.getElementById('vehicle-number');
 const ownerName = document.getElementById('owner-name');
+const ownerEmail = document.getElementById('owner-email');
 const slotSelect = document.getElementById('slot-select');
 const bookingsBody = document.getElementById('bookings-body');
 const noBookings = document.getElementById('no-bookings');
@@ -145,7 +146,7 @@ function renderBookings() {
 }
 
 // Book a slot
-function bookSlot(slotId, vehicleNum, owner) {
+function bookSlot(slotId, vehicleNum, owner, email) {
     const slots = getSlots();
     const slotIndex = slots.findIndex(s => s.id === parseInt(slotId));
 
@@ -153,11 +154,47 @@ function bookSlot(slotId, vehicleNum, owner) {
         slots[slotIndex].isOccupied = true;
         slots[slotIndex].vehicleNumber = vehicleNum.toUpperCase();
         slots[slotIndex].ownerName = owner;
+        slots[slotIndex].ownerEmail = email;
         slots[slotIndex].bookedAt = new Date().toISOString();
         saveSlots(slots);
+
+        // Trigger Email Sending
+        sendConfirmationEmail({
+            slot: slots[slotIndex].slotNumber,
+            name: owner,
+            vehicle: vehicleNum.toUpperCase(),
+            email: email,
+            time: new Date().toLocaleString()
+        });
+
         return true;
     }
     return false;
+}
+
+// Mock Email Sending Function
+function sendConfirmationEmail(details) {
+    // In a real app, this would use EmailJS or a backend API
+    console.log(`📧 SENDING EMAIL TO: ${details.email}`);
+    console.log(`Subject: Booking Confirmation - Slot ${details.slot}`);
+    console.log(`Body: Hello ${details.name}, your vehicle ${details.vehicle} is parked at ${details.slot}.`);
+
+    // Simulate network delay and update System Console
+    const consoleElement = document.getElementById('system-console');
+    if (consoleElement) {
+        const originalText = consoleElement.innerHTML;
+        consoleElement.innerHTML = `<span style="color: var(--primary)">TRANSMITTING DATA TO SATELLITE...</span>`;
+
+        setTimeout(() => {
+            consoleElement.innerHTML = `<span style="color: var(--success)">CONFIRMATION SENT TO ${details.email.toUpperCase()}</span>`;
+            setTimeout(() => {
+                // Return to idle state
+                consoleElement.innerHTML = `SYSTEM ONLINE. WAITING FOR INPUT.<span class="cursor-blink">_</span>`;
+            }, 3000);
+        }, 1500);
+    }
+
+    showNotification(`Booking sent to ${details.email}`, 'success');
 }
 
 // Release a slot
@@ -166,13 +203,21 @@ function releaseSlot(slotId) {
     const slotIndex = slots.findIndex(s => s.id === parseInt(slotId));
 
     if (slotIndex !== -1 && slots[slotIndex].isOccupied) {
+        const releasedEmail = slots[slotIndex].ownerEmail;
+
         slots[slotIndex].isOccupied = false;
         slots[slotIndex].vehicleNumber = null;
         slots[slotIndex].ownerName = null;
+        slots[slotIndex].ownerEmail = null;
         slots[slotIndex].bookedAt = null;
         saveSlots(slots);
         refreshUI();
         showNotification('Slot released successfully!', 'success');
+
+        // Optional: Notify release
+        if (releasedEmail) {
+            console.log(`📧 SENDING EXIT NOTIFICATION TO: ${releasedEmail}`);
+        }
     }
 }
 
@@ -215,255 +260,235 @@ function refreshUI() {
 }
 
 // Form submission handler
-bookForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+if (bookForm) {
+    bookForm.addEventListener('submit', (e) => {
+        e.preventDefault();
 
-    const slotId = slotSelect.value;
-    const vehicle = vehicleNumber.value.trim();
-    const owner = ownerName.value.trim();
+        const slotId = slotSelect.value;
+        const vehicle = vehicleNumber.value.trim();
+        const owner = ownerName.value.trim();
+        const email = ownerEmail.value.trim();
 
-    if (!slotId || !vehicle || !owner) {
-        showNotification('Please fill all fields!', 'error');
-        return;
-    }
-
-    if (bookSlot(slotId, vehicle, owner)) {
-        showNotification('Slot booked successfully!', 'success');
-        bookForm.reset();
-        refreshUI();
-    } else {
-        showNotification('Failed to book slot. Please try again.', 'error');
-    }
-    // Guard clause: Check if bookForm exists
-    if (bookForm) {
-        bookForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            // Ensure elements exist before accessing their values
-            const slotId = slotSelect ? slotSelect.value : '';
-            const vehicle = vehicleNumber ? vehicleNumber.value.trim() : '';
-            const owner = ownerName ? ownerName.value.trim() : '';
-
-            if (!slotId || !vehicle || !owner) {
-                showNotification('Please fill all fields!', 'error');
-                return;
-            }
-
-            if (bookSlot(slotId, vehicle, owner)) {
-                showNotification('Slot booked successfully!', 'success');
-                bookForm.reset();
-                refreshUI();
-            } else {
-                showNotification('Failed to book slot. Please try again.', 'error');
-            }
-        });
-    }
-
-
-    // Initialize application
-    document.addEventListener('DOMContentLoaded', () => {
-        initializeSlots();
-
-        // Core visual effects
-        initParticles();
-        initSystemConsole();
-        initTiltEffect();
-
-        // Page Specific Logic
-        if (document.getElementById('slots-container')) {
-            // Dashboard Page
-            refreshUI();
+        if (!slotId || !vehicle || !owner || !email) {
+            showNotification('Please fill all fields!', 'error');
+            return;
         }
 
-        if (document.getElementById('bookings-body')) {
-            // Bookings Page
-            renderBookings();
+        if (bookSlot(slotId, vehicle, owner, email)) {
+            // Success notification handled in sendConfirmationEmail for better flow
+            // showNotification('Slot booked successfully!', 'success'); // Duplicate
+            bookForm.reset();
+            refreshUI();
+        } else {
+            showNotification('Failed to book slot. Please try again.', 'error');
         }
     });
+}
 
-    /* --- SYSTEM CONSOLE TYPING EFFECT --- */
-    function initSystemConsole() {
-        const consoleElement = document.getElementById('system-console');
-        if (!consoleElement) return; // Guard clause
+// Initialize application
+document.addEventListener('DOMContentLoaded', () => {
+    initializeSlots();
 
-        const messages = [
-            "INITIALIZING CORE SYSTEMS...",
-            "CONNECTING TO SATELLITE NETWORK...",
-            "CALIBRATING SENSORS...",
-            "OPTIMIZING NEURAL GRID...",
-            "SYSTEM ONLINE. WAITING FOR INPUT._"
-        ];
-        let messageIndex = 0;
-        let charIndex = 0;
-        let isDeleting = false;
-        let typeSpeed = 50;
+    // Core visual effects
+    initParticles();
+    initSystemConsole();
+    initTiltEffect();
 
-        function type() {
-            const currentMessage = messages[messageIndex];
-
-            if (isDeleting) {
-                consoleElement.textContent = currentMessage.substring(0, charIndex - 1);
-                charIndex--;
-                typeSpeed = 30; // Deleting speed
-            } else {
-                consoleElement.textContent = currentMessage.substring(0, charIndex + 1);
-                charIndex++;
-                typeSpeed = 50 + Math.random() * 50; // Human-like typing variance
-            }
-
-            if (!isDeleting && charIndex === currentMessage.length) {
-                // Finished typing
-                if (messageIndex === messages.length - 1) {
-                    // Last message, keep it blinking
-                    consoleElement.innerHTML = currentMessage.replace('_', '') + '<span class="cursor-blink">_</span>';
-                    return;
-                }
-                isDeleting = true;
-                typeSpeed = 1000; // Pause at end
-            } else if (isDeleting && charIndex === 0) {
-                isDeleting = false;
-                messageIndex++;
-                typeSpeed = 500; // Pause before next message
-            }
-
-            setTimeout(type, typeSpeed);
-        }
-
-        type();
+    // Page Specific Logic
+    if (document.getElementById('slots-container')) {
+        // Dashboard Page
+        refreshUI();
     }
 
-    /* --- 3D PARALLAX TILT EFFECT --- */
-    function initTiltEffect() {
-        const container = document.querySelector('.app-container');
+    if (document.getElementById('bookings-body')) {
+        // Bookings Page
+        renderBookings();
+    }
+});
 
-        document.addEventListener('mousemove', (e) => {
-            if (window.innerWidth < 1024) return; // Disable on mobile
+/* --- SYSTEM CONSOLE TYPING EFFECT --- */
+function initSystemConsole() {
+    const consoleElement = document.getElementById('system-console');
+    if (!consoleElement) return;
 
-            const x = (window.innerWidth / 2 - e.clientX) / 100; // Divide by 100 for subtle effect
-            const y = (window.innerHeight / 2 - e.clientY) / 100;
+    const messages = [
+        "INITIALIZING CORE SYSTEMS...",
+        "CONNECTING TO SATELLITE NETWORK...",
+        "CALIBRATING SENSORS...",
+        "OPTIMIZING NEURAL GRID...",
+        "SYSTEM ONLINE. WAITING FOR INPUT._"
+    ];
+    let messageIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typeSpeed = 50;
 
-            // requestAnimationFrame for performance
-            window.requestAnimationFrame(() => {
-                container.style.transition = 'transform 0.1s ease-out'; // Smooth follow
-                container.style.transform = `perspective(2000px) rotateY(${x}deg) rotateX(${y}deg)`;
-            });
+    function type() {
+        const currentMessage = messages[messageIndex];
+
+        if (isDeleting) {
+            consoleElement.textContent = currentMessage.substring(0, charIndex - 1);
+            charIndex--;
+            typeSpeed = 30; // Deleting speed
+        } else {
+            consoleElement.textContent = currentMessage.substring(0, charIndex + 1);
+            charIndex++;
+            typeSpeed = 50 + Math.random() * 50; // Human-like typing variance
+        }
+
+        if (!isDeleting && charIndex === currentMessage.length) {
+            // Finished typing
+            if (messageIndex === messages.length - 1) {
+                // Last message, keep it blinking
+                consoleElement.innerHTML = currentMessage.replace('_', '') + '<span class="cursor-blink">_</span>';
+                return;
+            }
+            isDeleting = true;
+            typeSpeed = 1000; // Pause at end
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            messageIndex++;
+            typeSpeed = 500; // Pause before next message
+        }
+
+        setTimeout(type, typeSpeed);
+    }
+
+    type();
+}
+
+/* --- 3D PARALLAX TILT EFFECT --- */
+function initTiltEffect() {
+    const container = document.querySelector('.app-container');
+    if (!container) return;
+
+    document.addEventListener('mousemove', (e) => {
+        if (window.innerWidth < 1024) return; // Disable on mobile
+
+        const x = (window.innerWidth / 2 - e.clientX) / 100; // Divide by 100 for subtle effect
+        const y = (window.innerHeight / 2 - e.clientY) / 100;
+
+        // requestAnimationFrame for performance
+        window.requestAnimationFrame(() => {
+            container.style.transition = 'transform 0.1s ease-out'; // Smooth follow
+            container.style.transform = `perspective(2000px) rotateY(${x}deg) rotateX(${y}deg)`;
         });
+    });
 
-        // Reset on mouse leave
-        document.addEventListener('mouseleave', () => {
-            container.style.transition = 'transform 0.5s ease';
-            container.style.transform = 'perspective(2000px) rotateY(0deg) rotateX(0deg)';
-        });
-    }
+    // Reset on mouse leave
+    document.addEventListener('mouseleave', () => {
+        container.style.transition = 'transform 0.5s ease';
+        container.style.transform = 'perspective(2000px) rotateY(0deg) rotateX(0deg)';
+    });
+}
 
+/* --- PARTICLE SYSTEM --- */
+let particlesOverlay;
+let ctx;
+let particles = [];
+let animationFrameId;
 
-    /* --- PARTICLE SYSTEM --- */
-    let particlesOverlay;
-    let ctx;
-    let particles = [];
-    let animationFrameId;
+function initParticles() {
+    particlesOverlay = document.getElementById('particles-canvas');
+    if (!particlesOverlay) return;
 
-    function initParticles() {
-        particlesOverlay = document.getElementById('particles-canvas');
-        if (!particlesOverlay) return;
+    ctx = particlesOverlay.getContext('2d');
 
-        ctx = particlesOverlay.getContext('2d');
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
 
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
+    // Create initial ambient particles
+    createAmbientParticles();
+    animateParticles();
+}
 
-        // Create initial ambient particles
-        createAmbientParticles();
-        animateParticles();
-    }
+function resizeCanvas() {
+    particlesOverlay.width = window.innerWidth;
+    particlesOverlay.height = window.innerHeight;
+}
 
-    function resizeCanvas() {
-        particlesOverlay.width = window.innerWidth;
-        particlesOverlay.height = window.innerHeight;
-    }
+class Particle {
+    constructor(x, y, type = 'ambient') {
+        this.x = x;
+        this.y = y;
+        this.type = type; // 'ambient' or 'explosion'
 
-    class Particle {
-        constructor(x, y, type = 'ambient') {
-            this.x = x;
-            this.y = y;
-            this.type = type; // 'ambient' or 'explosion'
-
-            if (type === 'ambient') {
-                this.size = Math.random() * 2 + 0.5;
-                this.speedX = Math.random() * 1 - 0.5;
-                this.speedY = Math.random() * 1 - 0.5;
-                this.color = `rgba(${Math.random() > 0.5 ? '0, 243, 255' : '188, 19, 254'}, ${Math.random() * 0.5})`;
-                this.life = Infinity;
-            } else {
-                this.size = Math.random() * 4 + 2;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 10 + 2;
-                this.speedX = Math.cos(angle) * speed;
-                this.speedY = Math.sin(angle) * speed;
-                this.color = `hsl(${Math.random() * 60 + 120}, 100%, 50%)`; // Greens/Blues
-                this.life = 100;
-                this.decay = Math.random() * 0.05 + 0.02;
-            }
-        }
-
-        update() {
-            this.x += this.speedX;
-            this.y += this.speedY;
-
-            if (this.type === 'explosion') {
-                this.life -= 2;
-                this.size -= 0.1;
-                this.speedX *= 0.95; // friction
-                this.speedY *= 0.95;
-            } else {
-                // Wrap around screen for ambient
-                if (this.x < 0) this.x = particlesOverlay.width;
-                if (this.x > particlesOverlay.width) this.x = 0;
-                if (this.y < 0) this.y = particlesOverlay.height;
-                if (this.y > particlesOverlay.height) this.y = 0;
-            }
-        }
-
-        draw() {
-            if (this.size <= 0) return;
-            ctx.fillStyle = this.color;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
+        if (type === 'ambient') {
+            this.size = Math.random() * 2 + 0.5;
+            this.speedX = Math.random() * 1 - 0.5;
+            this.speedY = Math.random() * 1 - 0.5;
+            this.color = `rgba(${Math.random() > 0.5 ? '0, 243, 255' : '188, 19, 254'}, ${Math.random() * 0.5})`;
+            this.life = Infinity;
+        } else {
+            this.size = Math.random() * 4 + 2;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 10 + 2;
+            this.speedX = Math.cos(angle) * speed;
+            this.speedY = Math.sin(angle) * speed;
+            this.color = `hsl(${Math.random() * 60 + 120}, 100%, 50%)`; // Greens/Blues
+            this.life = 100;
+            this.decay = Math.random() * 0.05 + 0.02;
         }
     }
 
-    function createAmbientParticles() {
-        for (let i = 0; i < 50; i++) {
-            particles.push(new Particle(
-                Math.random() * particlesOverlay.width,
-                Math.random() * particlesOverlay.height
-            ));
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.type === 'explosion') {
+            this.life -= 2;
+            this.size -= 0.1;
+            this.speedX *= 0.95; // friction
+            this.speedY *= 0.95;
+        } else {
+            // Wrap around screen for ambient
+            if (this.x < 0) this.x = particlesOverlay.width;
+            if (this.x > particlesOverlay.width) this.x = 0;
+            if (this.y < 0) this.y = particlesOverlay.height;
+            if (this.y > particlesOverlay.height) this.y = 0;
         }
     }
 
-    function explodeParticles(x, y) {
-        for (let i = 0; i < 60; i++) {
-            particles.push(new Particle(x, y, 'explosion'));
-        }
+    draw() {
+        if (this.size <= 0) return;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
     }
+}
 
-    function animateParticles() {
-        ctx.clearRect(0, 0, particlesOverlay.width, particlesOverlay.height);
-
-        particles = particles.filter(p => p.life > 0 && p.size > 0);
-
-        particles.forEach(p => {
-            p.update();
-            p.draw();
-        });
-
-        requestAnimationFrame(animateParticles);
+function createAmbientParticles() {
+    for (let i = 0; i < 50; i++) {
+        particles.push(new Particle(
+            Math.random() * particlesOverlay.width,
+            Math.random() * particlesOverlay.height
+        ));
     }
+}
 
-    // Add CSS animation for notifications
-    const style = document.createElement('style');
-    style.textContent = `
+function explodeParticles(x, y) {
+    for (let i = 0; i < 60; i++) {
+        particles.push(new Particle(x, y, 'explosion'));
+    }
+}
+
+function animateParticles() {
+    ctx.clearRect(0, 0, particlesOverlay.width, particlesOverlay.height);
+
+    particles = particles.filter(p => p.life > 0 && p.size > 0);
+
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+
+    requestAnimationFrame(animateParticles);
+}
+
+// Add CSS animation for notifications
+const style = document.createElement('style');
+style.textContent = `
     @keyframes slideIn {
         from { transform: translateX(120%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
@@ -473,13 +498,13 @@ bookForm.addEventListener('submit', (e) => {
         to { transform: translateX(120%); opacity: 0; }
     }
 `;
-    document.head.appendChild(style);
+document.head.appendChild(style);
 
-    // Override notification to trigger explosion center screen on success
-    const originalShowNotification = showNotification;
-    showNotification = function (message, type) {
-        if (type === 'success') {
-            explodeParticles(window.innerWidth / 2, window.innerHeight / 2);
-        }
-        originalShowNotification(message, type);
-    };
+// Override notification to trigger explosion center screen on success
+const originalShowNotification = showNotification;
+showNotification = function (message, type) {
+    if (type === 'success') {
+        explodeParticles(window.innerWidth / 2, window.innerHeight / 2);
+    }
+    originalShowNotification(message, type);
+};
