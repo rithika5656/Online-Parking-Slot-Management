@@ -591,11 +591,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initSystemConsole();
     initTiltEffect();
 
-    // Initialize all app components
-    populateSlotDropdown();
-    renderParkingGrid();
-    updateStats();
-    renderBookings(); // Now always renders
+    // Page Specific Logic
+    if (document.getElementById('slots-container')) {
+        // Dashboard Page
+        populateSlotDropdown();
+        renderParkingGrid();
+        updateStats();
+
+        // Settings Button only for dashboard primarily, but let's keep it global if needed. 
+        // Actually user wants exactly "old version". In "old version" settings might be everywhere?
+        // Let's attach settings button to body regardless.
+    }
+
+    if (document.getElementById('bookings-body')) {
+        // Bookings Page
+        renderBookings();
+    }
 
     // Add Settings Button
     const settingsBtn = document.createElement('div');

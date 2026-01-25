@@ -1034,6 +1034,66 @@ nav a.active {
     border-color: #fff;
 }
 
+/* --- DASHBOARD LAYOUT (Side-by-Side) --- */
+.dashboard-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    margin-bottom: 30px;
+}
+
+.stats {
+    flex: 0 0 35%;
+    /* Stats take ~35% width */
+    display: flex;
+    flex-direction: column;
+    /* Stack stats vertically on the left */
+    gap: 20px;
+    padding: 0;
+    /* Remove default padding if any to fit */
+}
+
+.parking-grid {
+    flex: 1;
+    /* Grid takes remaining space */
+    margin-top: 0;
+    /* Reset generic margin */
+    align-self: stretch;
+    /* Match height of stats column if possible */
+}
+
+/* Make stat cards tall and prominent */
+.stat-card {
+    flex: 1;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.stat-card span {
+    font-size: 3rem;
+    /* Bigger numbers */
+}
+
+@media (max-width: 900px) {
+    .dashboard-layout {
+        flex-direction: column;
+    }
+
+    .stats {
+        flex-direction: row;
+        width: 100%;
+        flex: auto;
+    }
+
+    .parking-grid {
+        width: 100%;
+    }
+}
+
 /* --- SOUND TOGGLE --- */
 .sound-toggle {
     position: fixed;
