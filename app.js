@@ -626,7 +626,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initParticles(); // Init Background Animation
     initHUD(); // Init HUD Search
     initDrone(); // Init Security Drone
-    initThemePicker(); // Init Color Customizer
 });
 
 /* --- SECURITY DRONE --- */
@@ -665,42 +664,94 @@ function initDrone() {
     patrol();
 }
 
-/* --- THEME PICKER --- */
-function initThemePicker() {
-    const dock = document.createElement('div');
-    dock.className = 'theme-dock';
+// Open Settings Modal
+function openSettings() {
+    const existing = document.querySelector('.email-modal-overlay');
+    if (existing) existing.remove();
+
+    const settings = JSON.parse(localStorage.getItem('emailSettings')) || {};
+    // Current theme index checking (simple approach) or default
+    const currentTheme = localStorage.getItem('themeColor') || '#00f3ff';
 
     const themes = [
-        { color: '#00f3ff', glow: 'rgba(0, 243, 255, 0.6)', dim: 'rgba(0, 243, 255, 0.2)' }, // Cyan (Default)
-        { color: '#0affae', glow: 'rgba(10, 255, 174, 0.6)', dim: 'rgba(10, 255, 174, 0.2)' }, // Neon Green
-        { color: '#ff0055', glow: 'rgba(255, 0, 85, 0.6)', dim: 'rgba(255, 0, 85, 0.2)' }, // Cyber Red
-        { color: '#bc13fe', glow: 'rgba(188, 19, 254, 0.6)', dim: 'rgba(188, 19, 254, 0.2)' }, // Purple
-        { color: '#ffea00', glow: 'rgba(255, 234, 0, 0.6)', dim: 'rgba(255, 234, 0, 0.2)' }  // Yellow
+        { color: '#00f3ff', glow: 'rgba(0, 243, 255, 0.6)', dim: 'rgba(0, 243, 255, 0.2)', name: 'Cyan' },
+        { color: '#0affae', glow: 'rgba(10, 255, 174, 0.6)', dim: 'rgba(10, 255, 174, 0.2)', name: 'Neon Green' },
+        { color: '#ff0055', glow: 'rgba(255, 0, 85, 0.6)', dim: 'rgba(255, 0, 85, 0.2)', name: 'Cyber Red' },
+        { color: '#bc13fe', glow: 'rgba(188, 19, 254, 0.6)', dim: 'rgba(188, 19, 254, 0.2)', name: 'Purple' },
+        { color: '#ffea00', glow: 'rgba(255, 234, 0, 0.6)', dim: 'rgba(255, 234, 0, 0.2)', name: 'Yellow' }
     ];
 
-    themes.forEach((theme, index) => {
+    const modalHTML = `
+        <div class="email-modal-overlay">
+            <div class="config-modal">
+                <h3>⚙️ System Configuration</h3>
+                
+                <div class="config-group">
+                     <label>🎨 Interface Theme</label>
+                     <div class="modal-theme-options" id="theme-options-container">
+                        <!-- Injected via JS below -->
+                     </div>
+                </div>
+
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
+                    <label style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="checkbox" id="cfg-lite" ${settings.liteMode ? 'checked' : ''} style="width:20px; height:20px; margin-right:10px;">
+                        <span>
+                            <strong style="display:block; color:var(--primary)">Lite Mode</strong>
+                            <span style="font-size:0.8rem; color:#aaa">Disable 3D animations for recording.</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="config-group">
+                    <label>Public Key (EmailJS)</label>
+                    <input type="text" id="cfg-public" value="${settings.publicKey || ''}">
+                </div>
+                <div class="config-group">
+                    <label>Service ID</label>
+                    <input type="text" id="cfg-service" value="${settings.serviceID || ''}">
+                </div>
+                <div class="config-group">
+                    <label>Template ID</label>
+                    <input type="text" id="cfg-template" value="${settings.templateID || ''}">
+                </div>
+                
+                <button class="btn-save-config" onclick="saveSettings()">Save & Close</button>
+            </div>
+        </div>
+    `;
+
+    const range = document.createRange();
+    const fragment = range.createContextualFragment(modalHTML);
+    document.body.appendChild(fragment);
+
+    // Inject Theme Buttons
+    const themeContainer = document.getElementById('theme-options-container');
+    themes.forEach(theme => {
         const btn = document.createElement('div');
-        btn.className = 'theme-btn';
+        btn.className = `theme-option ${currentTheme === theme.color ? 'active' : ''}`;
         btn.style.backgroundColor = theme.color;
-        if (index === 0) btn.classList.add('active'); // Default active
+        btn.title = theme.name;
 
         btn.onclick = () => {
-            // Reset Active State
-            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.theme-option').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
 
-            // Apply Variables
+            // Apply Theme Immediately
             const root = document.documentElement;
             root.style.setProperty('--primary', theme.color);
             root.style.setProperty('--primary-glow', theme.glow);
             root.style.setProperty('--primary-dim', theme.dim);
 
+            // Save to LocalStorage
+            localStorage.setItem('themeColor', theme.color);
+            localStorage.setItem('themeGlow', theme.glow);
+            localStorage.setItem('themeDim', theme.dim);
+
             soundManager.play('click');
         };
-        dock.appendChild(btn);
+        themeContainer.appendChild(btn);
     });
-
-    document.body.appendChild(dock);
 }
 
 /* --- HUD SEARCH & REVENUE --- */
