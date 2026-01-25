@@ -625,7 +625,83 @@ document.addEventListener('DOMContentLoaded', () => {
     initSensors(); // Init IoT Sensors
     initParticles(); // Init Background Animation
     initHUD(); // Init HUD Search
+    initDrone(); // Init Security Drone
+    initThemePicker(); // Init Color Customizer
 });
+
+/* --- SECURITY DRONE --- */
+function initDrone() {
+    const grid = document.getElementById('slots-container');
+    if (!grid) return;
+
+    // Create Drone
+    const drone = document.createElement('div');
+    drone.className = 'drone-container';
+    drone.innerHTML = `
+        <div class="drone-body">
+            <div class="drone-scanner"></div>
+        </div>
+    `;
+    grid.appendChild(drone); // Append to grid container so it's relative to slots
+
+    // Make grid relative if not
+    if (getComputedStyle(grid).position === 'static') grid.style.position = 'relative';
+
+    function patrol() {
+        // Random Horizontal Movement
+        const width = grid.offsetWidth - 60;
+        const height = grid.offsetHeight - 50;
+
+        const randomX = Math.random() * width;
+        const randomY = Math.random() * height;
+
+        drone.style.left = `${randomX}px`;
+        drone.style.top = `${randomY}px`;
+
+        // Random Wait before next move
+        setTimeout(patrol, 5000 + Math.random() * 3000);
+    }
+
+    patrol();
+}
+
+/* --- THEME PICKER --- */
+function initThemePicker() {
+    const dock = document.createElement('div');
+    dock.className = 'theme-dock';
+
+    const themes = [
+        { color: '#00f3ff', glow: 'rgba(0, 243, 255, 0.6)', dim: 'rgba(0, 243, 255, 0.2)' }, // Cyan (Default)
+        { color: '#0affae', glow: 'rgba(10, 255, 174, 0.6)', dim: 'rgba(10, 255, 174, 0.2)' }, // Neon Green
+        { color: '#ff0055', glow: 'rgba(255, 0, 85, 0.6)', dim: 'rgba(255, 0, 85, 0.2)' }, // Cyber Red
+        { color: '#bc13fe', glow: 'rgba(188, 19, 254, 0.6)', dim: 'rgba(188, 19, 254, 0.2)' }, // Purple
+        { color: '#ffea00', glow: 'rgba(255, 234, 0, 0.6)', dim: 'rgba(255, 234, 0, 0.2)' }  // Yellow
+    ];
+
+    themes.forEach((theme, index) => {
+        const btn = document.createElement('div');
+        btn.className = 'theme-btn';
+        btn.style.backgroundColor = theme.color;
+        if (index === 0) btn.classList.add('active'); // Default active
+
+        btn.onclick = () => {
+            // Reset Active State
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Apply Variables
+            const root = document.documentElement;
+            root.style.setProperty('--primary', theme.color);
+            root.style.setProperty('--primary-glow', theme.glow);
+            root.style.setProperty('--primary-dim', theme.dim);
+
+            soundManager.play('click');
+        };
+        dock.appendChild(btn);
+    });
+
+    document.body.appendChild(dock);
+}
 
 /* --- HUD SEARCH & REVENUE --- */
 function initHUD() {
