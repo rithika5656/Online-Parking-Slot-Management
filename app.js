@@ -240,7 +240,112 @@ bookForm.addEventListener('submit', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     initializeSlots();
     refreshUI();
+    initParticles();
 });
+
+/* --- PARTICLE SYSTEM --- */
+let particlesOverlay;
+let ctx;
+let particles = [];
+let animationFrameId;
+
+function initParticles() {
+    particlesOverlay = document.getElementById('particles-canvas');
+    if (!particlesOverlay) return;
+
+    ctx = particlesOverlay.getContext('2d');
+
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // Create initial ambient particles
+    createAmbientParticles();
+    animateParticles();
+}
+
+function resizeCanvas() {
+    particlesOverlay.width = window.innerWidth;
+    particlesOverlay.height = window.innerHeight;
+}
+
+class Particle {
+    constructor(x, y, type = 'ambient') {
+        this.x = x;
+        this.y = y;
+        this.type = type; // 'ambient' or 'explosion'
+
+        if (type === 'ambient') {
+            this.size = Math.random() * 2 + 0.5;
+            this.speedX = Math.random() * 1 - 0.5;
+            this.speedY = Math.random() * 1 - 0.5;
+            this.color = `rgba(${Math.random() > 0.5 ? '0, 243, 255' : '188, 19, 254'}, ${Math.random() * 0.5})`;
+            this.life = Infinity;
+        } else {
+            this.size = Math.random() * 4 + 2;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 10 + 2;
+            this.speedX = Math.cos(angle) * speed;
+            this.speedY = Math.sin(angle) * speed;
+            this.color = `hsl(${Math.random() * 60 + 120}, 100%, 50%)`; // Greens/Blues
+            this.life = 100;
+            this.decay = Math.random() * 0.05 + 0.02;
+        }
+    }
+
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+
+        if (this.type === 'explosion') {
+            this.life -= 2;
+            this.size -= 0.1;
+            this.speedX *= 0.95; // friction
+            this.speedY *= 0.95;
+        } else {
+            // Wrap around screen for ambient
+            if (this.x < 0) this.x = particlesOverlay.width;
+            if (this.x > particlesOverlay.width) this.x = 0;
+            if (this.y < 0) this.y = particlesOverlay.height;
+            if (this.y > particlesOverlay.height) this.y = 0;
+        }
+    }
+
+    draw() {
+        if (this.size <= 0) return;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function createAmbientParticles() {
+    for (let i = 0; i < 50; i++) {
+        particles.push(new Particle(
+            Math.random() * particlesOverlay.width,
+            Math.random() * particlesOverlay.height
+        ));
+    }
+}
+
+function explodeParticles(x, y) {
+    for (let i = 0; i < 60; i++) {
+        particles.push(new Particle(x, y, 'explosion'));
+    }
+}
+
+function animateParticles() {
+    ctx.clearRect(0, 0, particlesOverlay.width, particlesOverlay.height);
+
+    particles = particles.filter(p => p.life > 0 && p.size > 0);
+
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+
+    requestAnimationFrame(animateParticles);
+}
 
 // Add CSS animation for notifications
 const style = document.createElement('style');
@@ -255,3 +360,12 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Override notification to trigger explosion center screen on success
+const originalShowNotification = showNotification;
+showNotification = function (message, type) {
+    if (type === 'success') {
+        explodeParticles(window.innerWidth / 2, window.innerHeight / 2);
+    }
+    originalShowNotification(message, type);
+};
