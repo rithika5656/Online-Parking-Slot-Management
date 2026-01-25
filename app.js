@@ -64,7 +64,7 @@ function renderParkingGrid() {
                 ${slot.isOccupied ? 'Occupied' : 'Allocated'}
             </div>
         `;
-        
+
         if (!slot.isOccupied) {
             slotDiv.addEventListener('click', () => {
                 slotSelect.value = slot.id;
@@ -82,9 +82,23 @@ function updateStats() {
     const available = slots.filter(s => !s.isOccupied).length;
     const occupied = slots.filter(s => s.isOccupied).length;
 
-    availableCount.textContent = available;
-    occupiedCount.textContent = occupied;
+    // Simple count animation
+    animateValue(availableCount, parseInt(availableCount.textContent), available, 500);
+    animateValue(occupiedCount, parseInt(occupiedCount.textContent), occupied, 500);
     totalCount.textContent = TOTAL_SLOTS;
+}
+
+function animateValue(obj, start, end, duration) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start);
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
 }
 
 // Populate slot dropdown
@@ -115,8 +129,8 @@ function renderBookings() {
     noBookings.style.display = 'none';
     document.getElementById('bookings-table').style.display = 'table';
 
-    bookingsBody.innerHTML = occupiedSlots.map(slot => `
-        <tr>
+    bookingsBody.innerHTML = occupiedSlots.map((slot, index) => `
+        <tr style="animation: slideDown 0.3s ease backwards ${index * 0.1}s">
             <td>${slot.slotNumber}</td>
             <td>${slot.vehicleNumber}</td>
             <td>${slot.ownerName}</td>
@@ -167,22 +181,28 @@ function showNotification(message, type) {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
+
+    // Inline styles for positioning, but visual styles are in CSS
     notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
         padding: 15px 25px;
-        background: ${type === 'success' ? '#28a745' : '#dc3545'};
         color: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         z-index: 1000;
-        animation: slideIn 0.3s ease;
+        animation: slideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        background: ${type === 'success' ? 'linear-gradient(135deg, #10b981, #059669)' : 'linear-gradient(135deg, #ef4444, #dc2626)'};
     `;
+
     document.body.appendChild(notification);
 
     setTimeout(() => {
-        notification.remove();
+        notification.style.animation = 'slideOut 0.5s forwards';
+        setTimeout(() => {
+            notification.remove();
+        }, 500);
     }, 3000);
 }
 
@@ -226,14 +246,12 @@ document.addEventListener('DOMContentLoaded', () => {
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(120%); opacity: 0; }
     }
 `;
 document.head.appendChild(style);
