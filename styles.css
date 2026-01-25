@@ -615,3 +615,44 @@ footer {
     margin-top: 3rem;
     border-top: 1px solid var(--border-color);
 }
+
+/* Navigation */
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    position: relative;
+    z-index: 10;
+}
+
+nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    padding: 0.8rem 2rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+nav a:hover {
+    color: var(--primary);
+    background: rgba(0, 243, 255, 0.1);
+    border-color: rgba(0, 243, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+}
+
+nav a.active {
+    color: #000;
+    background: var(--primary);
+    border-color: var(--primary);
+    font-weight: 700;
+    box-shadow: 0 0 20px var(--primary-glow);
+}
