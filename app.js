@@ -624,7 +624,80 @@ document.addEventListener('DOMContentLoaded', () => {
     voiceManager.init(); // Init Voice Assistant
     initSensors(); // Init IoT Sensors
     initParticles(); // Init Background Animation
+    initHUD(); // Init HUD Search
 });
+
+/* --- HUD SEARCH & REVENUE --- */
+function initHUD() {
+    // 1. Inject Controls Bar above Grid if it doesn't exist
+    const gridSection = document.querySelector('.parking-grid');
+    if (gridSection) {
+        const h2 = gridSection.querySelector('h2');
+
+        // Calculate Total Revenue
+        const slots = getSlots();
+        const totalRev = slots.reduce((sum, slot) => sum + (slot.amount || 0), 0);
+
+        const controlsHTML = `
+            <div class="controls-bar">
+                <div class="search-box">
+                    <input type="text" id="slot-search" placeholder="Locate Vehicle / Slot ID...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="revenue-ticker">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="revenue-display">₹${totalRev}</span>
+                </div>
+            </div>
+        `;
+
+        const div = document.createElement('div');
+        div.innerHTML = controlsHTML;
+        gridSection.insertBefore(div, h2.nextSibling);
+
+        // 2. Add Search Listener
+        const searchInput = document.getElementById('slot-search');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const slotEls = document.querySelectorAll('.slot');
+
+            // Clear existing targets
+            document.querySelectorAll('.hud-target').forEach(el => el.remove());
+
+            if (!query) return;
+
+            slotEls.forEach(el => {
+                const id = el.querySelector('.slot-id').textContent.toLowerCase();
+                const vehicle = el.querySelector('.vehicle-no')?.textContent.toLowerCase() || '';
+
+                if (id.includes(query) || vehicle.includes(query)) {
+                    // Match Found!
+                    createTargetReticle(el);
+
+                    // Scroll if it's the first match
+                    if (document.querySelectorAll('.hud-target').length === 1) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        soundManager.play('hover'); // Target Lock Sound
+                    }
+                }
+            });
+        });
+    }
+}
+
+function createTargetReticle(element) {
+    if (element.querySelector('.hud-target')) return;
+
+    const reticle = document.createElement('div');
+    reticle.className = 'hud-target';
+    reticle.innerHTML = `
+        <div class="hud-corner hud-tl"></div>
+        <div class="hud-corner hud-tr"></div>
+        <div class="hud-corner hud-bl"></div>
+        <div class="hud-corner hud-br"></div>
+    `;
+    element.appendChild(reticle);
+}
 
 /* --- BACKGROUND PARTICLE ANIMATION --- */
 function initParticles() {
