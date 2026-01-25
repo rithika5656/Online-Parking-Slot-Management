@@ -502,32 +502,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(settingsBtn);
 
     // Initialize Intro and Cursor
-    initIntro();
     initCursor();
 });
 
-/* --- CINEMATIC INTRO --- */
-function initIntro() {
-    const intro = document.getElementById('intro-overlay');
-    if (intro) {
-        // Hide scrollbar during intro
-        document.body.style.overflow = 'hidden';
-
-        // Feature: Click to Skip Intro
-        intro.addEventListener('click', () => {
-            intro.style.opacity = '0';
-            intro.style.visibility = 'hidden';
-            document.body.style.overflow = 'auto';
-        });
-
-        // Auto dismiss after 1.2 seconds (Faster!)
-        setTimeout(() => {
-            intro.style.opacity = '0';
-            intro.style.visibility = 'hidden';
-            document.body.style.overflow = 'auto'; // Restore scroll
-        }, 1200);
-    }
-}
 
 /* --- CUSTOM CURSOR --- */
 function initCursor() {
