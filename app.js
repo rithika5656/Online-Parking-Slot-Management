@@ -620,10 +620,129 @@ document.addEventListener('DOMContentLoaded', () => {
     initCursor();
 
     // Initialize Clock and Sound
-    initClock();
     soundManager.init();
     voiceManager.init(); // Init Voice Assistant
+    initSensors(); // Init IoT Sensors
 });
+
+/* --- IOT SENSOR SIMULATION --- */
+function initSensors() {
+    // Create Widget
+    const widget = document.createElement('div');
+    widget.className = 'iot-widget';
+    widget.innerHTML = `
+        <div class="sensor">
+            <i class="fas fa-temperature-high"></i>
+            <div class="sensor-data">
+                <span class="sensor-val" id="temp-val">24°C</span>
+                <span class="sensor-label">TEMP</span>
+            </div>
+        </div>
+        <div class="sensor">
+            <i class="fas fa-wind"></i>
+            <div class="sensor-data">
+                <span class="sensor-val" id="aqi-val">45</span>
+                <span class="sensor-label">AQI</span>
+            </div>
+        </div>
+    `;
+
+    // Append only to Dashboard
+    if (document.getElementById('slots-container')) {
+        const header = document.querySelector('header');
+        if (header) {
+            header.appendChild(widget);
+            // Ensure header allows absolute positioning context is set in previous steps (relative)
+        }
+    }
+
+    // Simulate fluctuation
+    setInterval(() => {
+        const tempEl = document.getElementById('temp-val');
+        const aqiEl = document.getElementById('aqi-val');
+
+        if (tempEl && aqiEl) {
+            // Random fluctuation
+            const temp = 24 + (Math.random() * 2 - 1); // 23-25
+            const aqi = 45 + Math.floor(Math.random() * 10 - 5); // 40-50
+
+            tempEl.textContent = `${temp.toFixed(1)}°C`;
+            aqiEl.textContent = aqi;
+        }
+    }, 3000);
+}
+
+// ... (Rest of code)
+
+// Update showVirtualEmailModal to include QR
+function showVirtualEmailModal(details) {
+    // Remove existing modal if any
+    const existing = document.querySelector('.email-modal-overlay');
+    if (existing) existing.remove();
+
+    // Generate QR Code URL (using free API)
+    const qrData = `SMARTPARK-BOOKING|${details.slot}|${details.vehicle}|${details.time}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrData)}&color=000000&bgcolor=ffffff`;
+
+    const modalHTML = `
+        <div class="email-modal-overlay">
+            <div class="email-modal">
+                <div class="email-header">
+                    <h3>Booking Confirmation - Slot ${details.slot}</h3>
+                    <span class="email-close" onclick="this.closest('.email-modal-overlay').remove()">&times;</span>
+                </div>
+                <div class="email-body">
+                    <div class="email-logo">SmartPark</div>
+                    <div class="email-meta">
+                        <div class="email-row">
+                            <span class="email-label">From:</span>
+                            <span class="email-value">notifications@smartpark.system</span>
+                        </div>
+                        <div class="email-row">
+                            <span class="email-label">To:</span>
+                            <span class="email-value">${details.email}</span>
+                        </div>
+                        <div class="email-row">
+                            <span class="email-label">Date:</span>
+                            <span class="email-value">${details.time}</span>
+                        </div>
+                    </div>
+                    <div class="email-content">
+                        <p>Hello <strong>${details.name}</strong>,</p>
+                        <p>Your parking slot has been successfully booked!</p>
+                        
+                        <!-- QR Code -->
+                        <div style="text-align:center;">
+                            <img src="${qrUrl}" class="qr-code-img" alt="Booking QR Code">
+                            <p style="font-size:0.8rem; color:#666;">Scan for Entry</p>
+                        </div>
+
+                        <div style="background:#f5f5f5; padding:15px; border-radius:4px; margin:15px 0;">
+                            <strong>Vehicle:</strong> ${details.vehicle}<br>
+                            <strong>Slot:</strong> <span style="color:#1a73e8; font-weight:bold">${details.slot}</span><br>
+                            <strong>Duration:</strong> ${details.duration}h<br>
+                            <strong>Amount Paid:</strong> ₹${details.amount}<br>
+                            <strong>Status:</strong> Confirmed
+                        </div>
+                        
+                        <a href="#" class="btn-download-token" onclick="downloadToken('${details.slot}', '${details.vehicle}', '${details.name}', '${details.time}')">
+                            <i class="fas fa-download"></i> Download Token
+                        </a>
+
+                        <p style="margin-top:15px">Thank you for choosing SmartPark.</p>
+                    </div>
+                </div>
+                <div class="email-footer">
+                    <button class="btn-close-email" onclick="this.closest('.email-modal-overlay').remove()">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const range = document.createRange();
+    const fragment = range.createContextualFragment(modalHTML);
+    document.body.appendChild(fragment);
+}
 
 /* --- TRIGGER 3D PARKING SIMULATION --- */
 // ... (code remains)
