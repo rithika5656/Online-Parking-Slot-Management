@@ -588,10 +588,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Core visual effects
     initParticles();
-    initSystemConsole();
-    initTiltEffect();
+    // Restore Theme
+    const themeColor = localStorage.getItem('themeColor');
+    if (themeColor) {
+        const root = document.documentElement;
+        root.style.setProperty('--primary', themeColor);
+        root.style.setProperty('--primary-glow', localStorage.getItem('themeGlow'));
+        root.style.setProperty('--primary-dim', localStorage.getItem('themeDim'));
+    }
 
-    // Page Specific Logic
+    // Initialize all app components
     if (document.getElementById('slots-container')) {
         // Dashboard Page
         populateSlotDropdown();
