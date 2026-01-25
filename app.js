@@ -500,7 +500,58 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsBtn.title = 'Configure Real Email';
     settingsBtn.onclick = openSettings;
     document.body.appendChild(settingsBtn);
+
+    // Initialize Intro and Cursor
+    initIntro();
+    initCursor();
 });
+
+/* --- CINEMATIC INTRO --- */
+function initIntro() {
+    const intro = document.getElementById('intro-overlay');
+    if (intro) {
+        // Hide scrollbar during intro
+        document.body.style.overflow = 'hidden';
+
+        // Feature: Click to Skip Intro
+        intro.addEventListener('click', () => {
+            intro.style.opacity = '0';
+            intro.style.visibility = 'hidden';
+            document.body.style.overflow = 'auto';
+        });
+
+        // Auto dismiss after 1.2 seconds (Faster!)
+        setTimeout(() => {
+            intro.style.opacity = '0';
+            intro.style.visibility = 'hidden';
+            document.body.style.overflow = 'auto'; // Restore scroll
+        }, 1200);
+    }
+}
+
+/* --- CUSTOM CURSOR --- */
+function initCursor() {
+    const cursorDot = document.querySelector('.cursor-dot');
+    const cursorOutline = document.querySelector('.cursor-outline');
+
+    if (!cursorDot || !cursorOutline) return;
+
+    window.addEventListener('mousemove', (e) => {
+        const posX = e.clientX;
+        const posY = e.clientY;
+
+        // Dot follows instantly
+        cursorDot.style.left = `${posX}px`;
+        cursorDot.style.top = `${posY}px`;
+
+        // Outline follows with slight delay (animation is handled by CSS transition usually, 
+        // but let's do direct assignment for smoothness with CSS transition property already set)
+        cursorOutline.animate({
+            left: `${posX}px`,
+            top: `${posY}px`
+        }, { duration: 500, fill: "forwards" });
+    });
+}
 
 /* --- SYSTEM CONSOLE TYPING EFFECT --- */
 function initSystemConsole() {
