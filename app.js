@@ -53,8 +53,16 @@ function renderParkingGrid() {
         const slotDiv = document.createElement('div');
         slotDiv.className = `slot ${slot.isOccupied ? 'occupied' : 'available'}`;
         slotDiv.innerHTML = `
-            <span class="slot-icon">${slot.isOccupied ? '🚗' : '🅿️'}</span>
-            <span>${slot.slotNumber}</span>
+            <div class="slot-header">
+                <span class="slot-id">${slot.slotNumber}</span>
+                <span class="status-dot"></span>
+            </div>
+            <div class="slot-body">
+                <i class="fas ${slot.isOccupied ? 'fa-car-side' : 'fa-parking'}"></i>
+            </div>
+            <div class="slot-footer">
+                ${slot.isOccupied ? 'Occupied' : 'Allocated'}
+            </div>
         `;
         
         if (!slot.isOccupied) {
