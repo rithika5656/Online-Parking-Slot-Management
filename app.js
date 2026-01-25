@@ -174,27 +174,76 @@ function bookSlot(slotId, vehicleNum, owner, email) {
 
 // Mock Email Sending Function
 function sendConfirmationEmail(details) {
-    // In a real app, this would use EmailJS or a backend API
-    console.log(`📧 SENDING EMAIL TO: ${details.email}`);
-    console.log(`Subject: Booking Confirmation - Slot ${details.slot}`);
-    console.log(`Body: Hello ${details.name}, your vehicle ${details.vehicle} is parked at ${details.slot}.`);
+    // 1. Try sending via EmailJS
+    // Replace 'YOUR_SERVICE_ID' and 'YOUR_TEMPLATE_ID' with actual values from EmailJS dashboard
+    const serviceID = 'YOUR_SERVICE_ID';
+    const templateID = 'YOUR_TEMPLATE_ID';
 
-    // Simulate network delay and update System Console
+    const templateParams = {
+        to_name: details.name,
+        to_email: details.email,
+        slot_number: details.slot,
+        vehicle_number: details.vehicle,
+        booking_time: details.time,
+        message: `Your booking for vehicle ${details.vehicle} at slot ${details.slot} is confirmed.`
+    };
+
+    // Check if EmailJS is loaded and configured (Simple check)
+    if (typeof emailjs !== 'undefined' && serviceID !== 'YOUR_SERVICE_ID') {
+        const consoleElement = document.getElementById('system-console');
+        if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--primary)">CONNECTING TO EMAIL SERVER...</span>`;
+
+        emailjs.send(serviceID, templateID, templateParams)
+            .then(() => {
+                console.log('SUCCESS!');
+                if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--success)">EMAIL SENT SUCCESSFULLY</span>`;
+                showNotification(`Confirmation sent to ${details.email}`, 'success');
+            }, (error) => {
+                console.log('FAILED...', error);
+                if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--danger)">EMAIL FAILED. TRYING FALLBACK...</span>`;
+                // Fallback to mailto
+                openMailClient(details);
+            });
+    } else {
+        // 2. Fallback: Open Default Mail Client
+        console.log("EmailJS keys not configured. Opening default mail client.");
+        openMailClient(details);
+    }
+}
+
+function openMailClient(details) {
+    const subject = encodeURIComponent(`Booking Confirmation - Slot ${details.slot}`);
+    const body = encodeURIComponent(
+        `Hello ${details.name},
+
+Your parking slot has been successfully booked!
+
+=== BOOKING DETAILS ===
+Slot Number: ${details.slot}
+Vehicle Number: ${details.vehicle}
+Date & Time: ${details.time}
+Status: Confirmed
+
+Thank you for using SmartPark.
+`
+    );
+
+    // Create a hidden link to trigger mailto
+    const mailtoLink = `mailto:${details.email}?subject=${subject}&body=${body}`;
+    const link = document.createElement('a');
+    link.href = mailtoLink;
+    link.click(); // Programmatically click
+
+    showNotification('Email draft opened!', 'success');
+
+    // Update Console
     const consoleElement = document.getElementById('system-console');
     if (consoleElement) {
-        const originalText = consoleElement.innerHTML;
-        consoleElement.innerHTML = `<span style="color: var(--primary)">TRANSMITTING DATA TO SATELLITE...</span>`;
-
+        consoleElement.innerHTML = `<span style="color: var(--success)">LOCAL MAIL CLIENT OPENED</span>`;
         setTimeout(() => {
-            consoleElement.innerHTML = `<span style="color: var(--success)">CONFIRMATION SENT TO ${details.email.toUpperCase()}</span>`;
-            setTimeout(() => {
-                // Return to idle state
-                consoleElement.innerHTML = `SYSTEM ONLINE. WAITING FOR INPUT.<span class="cursor-blink">_</span>`;
-            }, 3000);
-        }, 1500);
+            consoleElement.innerHTML = `SYSTEM ONLINE. WAITING FOR INPUT.<span class="cursor-blink">_</span>`;
+        }, 3000);
     }
-
-    showNotification(`Booking sent to ${details.email}`, 'success');
 }
 
 // Release a slot
