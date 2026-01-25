@@ -1477,37 +1477,27 @@ nav a.active {
     }
 }
 
-/* --- THEME PICKER --- */
-.theme-dock {
-    position: fixed;
-    right: 30px;
-    top: 50%;
-    transform: translateY(-50%);
+/* --- THEME PICKER (In Settings) --- */
+.modal-theme-options {
     display: flex;
-    flex-direction: column;
     gap: 15px;
-    background: rgba(0, 0, 0, 0.5);
-    padding: 15px 10px;
-    border-radius: 30px;
-    border: 1px solid var(--border-color);
-    backdrop-filter: blur(5px);
-    z-index: 100;
+    margin-top: 10px;
 }
 
-.theme-btn {
-    width: 30px;
-    height: 30px;
+.theme-option {
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: transform 0.3s, box-shadow 0.3s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.theme-btn:hover {
-    transform: scale(1.2);
+.theme-option:hover {
+    transform: scale(1.1);
 }
 
-.theme-btn.active {
+.theme-option.active {
     border-color: #fff;
     box-shadow: 0 0 10px currentColor;
 }
