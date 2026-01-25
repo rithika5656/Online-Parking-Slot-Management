@@ -234,198 +234,236 @@ bookForm.addEventListener('submit', (e) => {
     } else {
         showNotification('Failed to book slot. Please try again.', 'error');
     }
-});
+    // Guard clause: Check if bookForm exists
+    if (bookForm) {
+        bookForm.addEventListener('submit', (e) => {
+            e.preventDefault();
 
-// Initialize application
-document.addEventListener('DOMContentLoaded', () => {
-    initializeSlots();
-    refreshUI();
-    initParticles();
-    initSystemConsole();
-    initTiltEffect();
-});
+            // Ensure elements exist before accessing their values
+            const slotId = slotSelect ? slotSelect.value : '';
+            const vehicle = vehicleNumber ? vehicleNumber.value.trim() : '';
+            const owner = ownerName ? ownerName.value.trim() : '';
 
-/* --- SYSTEM CONSOLE TYPING EFFECT --- */
-function initSystemConsole() {
-    const consoleElement = document.getElementById('system-console');
-    const messages = [
-        "INITIALIZING CORE SYSTEMS...",
-        "CONNECTING TO SATELLITE NETWORK...",
-        "CALIBRATING SENSORS...",
-        "OPTIMIZING NEURAL GRID...",
-        "SYSTEM ONLINE. WAITING FOR INPUT._"
-    ];
-    let messageIndex = 0;
-    let charIndex = 0;
-    let isDeleting = false;
-    let typeSpeed = 50;
-
-    function type() {
-        const currentMessage = messages[messageIndex];
-
-        if (isDeleting) {
-            consoleElement.textContent = currentMessage.substring(0, charIndex - 1);
-            charIndex--;
-            typeSpeed = 30; // Deleting speed
-        } else {
-            consoleElement.textContent = currentMessage.substring(0, charIndex + 1);
-            charIndex++;
-            typeSpeed = 50 + Math.random() * 50; // Human-like typing variance
-        }
-
-        if (!isDeleting && charIndex === currentMessage.length) {
-            // Finished typing
-            if (messageIndex === messages.length - 1) {
-                // Last message, keep it blinking
-                consoleElement.innerHTML = currentMessage.replace('_', '') + '<span class="cursor-blink">_</span>';
+            if (!slotId || !vehicle || !owner) {
+                showNotification('Please fill all fields!', 'error');
                 return;
             }
-            isDeleting = true;
-            typeSpeed = 1000; // Pause at end
-        } else if (isDeleting && charIndex === 0) {
-            isDeleting = false;
-            messageIndex++;
-            typeSpeed = 500; // Pause before next message
-        }
 
-        setTimeout(type, typeSpeed);
-    }
-
-    type();
-}
-
-/* --- 3D PARALLAX TILT EFFECT --- */
-function initTiltEffect() {
-    const container = document.querySelector('.app-container');
-
-    document.addEventListener('mousemove', (e) => {
-        if (window.innerWidth < 1024) return; // Disable on mobile
-
-        const x = (window.innerWidth / 2 - e.clientX) / 100; // Divide by 100 for subtle effect
-        const y = (window.innerHeight / 2 - e.clientY) / 100;
-
-        // requestAnimationFrame for performance
-        window.requestAnimationFrame(() => {
-            container.style.transition = 'transform 0.1s ease-out'; // Smooth follow
-            container.style.transform = `perspective(2000px) rotateY(${x}deg) rotateX(${y}deg)`;
+            if (bookSlot(slotId, vehicle, owner)) {
+                showNotification('Slot booked successfully!', 'success');
+                bookForm.reset();
+                refreshUI();
+            } else {
+                showNotification('Failed to book slot. Please try again.', 'error');
+            }
         });
+    }
+
+
+    // Initialize application
+    document.addEventListener('DOMContentLoaded', () => {
+        initializeSlots();
+
+        // Core visual effects
+        initParticles();
+        initSystemConsole();
+        initTiltEffect();
+
+        // Page Specific Logic
+        if (document.getElementById('slots-container')) {
+            // Dashboard Page
+            refreshUI();
+        }
+
+        if (document.getElementById('bookings-body')) {
+            // Bookings Page
+            renderBookings();
+        }
     });
 
-    // Reset on mouse leave
-    document.addEventListener('mouseleave', () => {
-        container.style.transition = 'transform 0.5s ease';
-        container.style.transform = 'perspective(2000px) rotateY(0deg) rotateX(0deg)';
-    });
-}
+    /* --- SYSTEM CONSOLE TYPING EFFECT --- */
+    function initSystemConsole() {
+        const consoleElement = document.getElementById('system-console');
+        if (!consoleElement) return; // Guard clause
+
+        const messages = [
+            "INITIALIZING CORE SYSTEMS...",
+            "CONNECTING TO SATELLITE NETWORK...",
+            "CALIBRATING SENSORS...",
+            "OPTIMIZING NEURAL GRID...",
+            "SYSTEM ONLINE. WAITING FOR INPUT._"
+        ];
+        let messageIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typeSpeed = 50;
+
+        function type() {
+            const currentMessage = messages[messageIndex];
+
+            if (isDeleting) {
+                consoleElement.textContent = currentMessage.substring(0, charIndex - 1);
+                charIndex--;
+                typeSpeed = 30; // Deleting speed
+            } else {
+                consoleElement.textContent = currentMessage.substring(0, charIndex + 1);
+                charIndex++;
+                typeSpeed = 50 + Math.random() * 50; // Human-like typing variance
+            }
+
+            if (!isDeleting && charIndex === currentMessage.length) {
+                // Finished typing
+                if (messageIndex === messages.length - 1) {
+                    // Last message, keep it blinking
+                    consoleElement.innerHTML = currentMessage.replace('_', '') + '<span class="cursor-blink">_</span>';
+                    return;
+                }
+                isDeleting = true;
+                typeSpeed = 1000; // Pause at end
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                messageIndex++;
+                typeSpeed = 500; // Pause before next message
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+
+        type();
+    }
+
+    /* --- 3D PARALLAX TILT EFFECT --- */
+    function initTiltEffect() {
+        const container = document.querySelector('.app-container');
+
+        document.addEventListener('mousemove', (e) => {
+            if (window.innerWidth < 1024) return; // Disable on mobile
+
+            const x = (window.innerWidth / 2 - e.clientX) / 100; // Divide by 100 for subtle effect
+            const y = (window.innerHeight / 2 - e.clientY) / 100;
+
+            // requestAnimationFrame for performance
+            window.requestAnimationFrame(() => {
+                container.style.transition = 'transform 0.1s ease-out'; // Smooth follow
+                container.style.transform = `perspective(2000px) rotateY(${x}deg) rotateX(${y}deg)`;
+            });
+        });
+
+        // Reset on mouse leave
+        document.addEventListener('mouseleave', () => {
+            container.style.transition = 'transform 0.5s ease';
+            container.style.transform = 'perspective(2000px) rotateY(0deg) rotateX(0deg)';
+        });
+    }
 
 
-/* --- PARTICLE SYSTEM --- */
-let particlesOverlay;
-let ctx;
-let particles = [];
-let animationFrameId;
+    /* --- PARTICLE SYSTEM --- */
+    let particlesOverlay;
+    let ctx;
+    let particles = [];
+    let animationFrameId;
 
-function initParticles() {
-    particlesOverlay = document.getElementById('particles-canvas');
-    if (!particlesOverlay) return;
+    function initParticles() {
+        particlesOverlay = document.getElementById('particles-canvas');
+        if (!particlesOverlay) return;
 
-    ctx = particlesOverlay.getContext('2d');
+        ctx = particlesOverlay.getContext('2d');
 
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
 
-    // Create initial ambient particles
-    createAmbientParticles();
-    animateParticles();
-}
+        // Create initial ambient particles
+        createAmbientParticles();
+        animateParticles();
+    }
 
-function resizeCanvas() {
-    particlesOverlay.width = window.innerWidth;
-    particlesOverlay.height = window.innerHeight;
-}
+    function resizeCanvas() {
+        particlesOverlay.width = window.innerWidth;
+        particlesOverlay.height = window.innerHeight;
+    }
 
-class Particle {
-    constructor(x, y, type = 'ambient') {
-        this.x = x;
-        this.y = y;
-        this.type = type; // 'ambient' or 'explosion'
+    class Particle {
+        constructor(x, y, type = 'ambient') {
+            this.x = x;
+            this.y = y;
+            this.type = type; // 'ambient' or 'explosion'
 
-        if (type === 'ambient') {
-            this.size = Math.random() * 2 + 0.5;
-            this.speedX = Math.random() * 1 - 0.5;
-            this.speedY = Math.random() * 1 - 0.5;
-            this.color = `rgba(${Math.random() > 0.5 ? '0, 243, 255' : '188, 19, 254'}, ${Math.random() * 0.5})`;
-            this.life = Infinity;
-        } else {
-            this.size = Math.random() * 4 + 2;
-            const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 10 + 2;
-            this.speedX = Math.cos(angle) * speed;
-            this.speedY = Math.sin(angle) * speed;
-            this.color = `hsl(${Math.random() * 60 + 120}, 100%, 50%)`; // Greens/Blues
-            this.life = 100;
-            this.decay = Math.random() * 0.05 + 0.02;
+            if (type === 'ambient') {
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+                this.color = `rgba(${Math.random() > 0.5 ? '0, 243, 255' : '188, 19, 254'}, ${Math.random() * 0.5})`;
+                this.life = Infinity;
+            } else {
+                this.size = Math.random() * 4 + 2;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 10 + 2;
+                this.speedX = Math.cos(angle) * speed;
+                this.speedY = Math.sin(angle) * speed;
+                this.color = `hsl(${Math.random() * 60 + 120}, 100%, 50%)`; // Greens/Blues
+                this.life = 100;
+                this.decay = Math.random() * 0.05 + 0.02;
+            }
+        }
+
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+
+            if (this.type === 'explosion') {
+                this.life -= 2;
+                this.size -= 0.1;
+                this.speedX *= 0.95; // friction
+                this.speedY *= 0.95;
+            } else {
+                // Wrap around screen for ambient
+                if (this.x < 0) this.x = particlesOverlay.width;
+                if (this.x > particlesOverlay.width) this.x = 0;
+                if (this.y < 0) this.y = particlesOverlay.height;
+                if (this.y > particlesOverlay.height) this.y = 0;
+            }
+        }
+
+        draw() {
+            if (this.size <= 0) return;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 
-    update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-
-        if (this.type === 'explosion') {
-            this.life -= 2;
-            this.size -= 0.1;
-            this.speedX *= 0.95; // friction
-            this.speedY *= 0.95;
-        } else {
-            // Wrap around screen for ambient
-            if (this.x < 0) this.x = particlesOverlay.width;
-            if (this.x > particlesOverlay.width) this.x = 0;
-            if (this.y < 0) this.y = particlesOverlay.height;
-            if (this.y > particlesOverlay.height) this.y = 0;
+    function createAmbientParticles() {
+        for (let i = 0; i < 50; i++) {
+            particles.push(new Particle(
+                Math.random() * particlesOverlay.width,
+                Math.random() * particlesOverlay.height
+            ));
         }
     }
 
-    draw() {
-        if (this.size <= 0) return;
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+    function explodeParticles(x, y) {
+        for (let i = 0; i < 60; i++) {
+            particles.push(new Particle(x, y, 'explosion'));
+        }
     }
-}
 
-function createAmbientParticles() {
-    for (let i = 0; i < 50; i++) {
-        particles.push(new Particle(
-            Math.random() * particlesOverlay.width,
-            Math.random() * particlesOverlay.height
-        ));
+    function animateParticles() {
+        ctx.clearRect(0, 0, particlesOverlay.width, particlesOverlay.height);
+
+        particles = particles.filter(p => p.life > 0 && p.size > 0);
+
+        particles.forEach(p => {
+            p.update();
+            p.draw();
+        });
+
+        requestAnimationFrame(animateParticles);
     }
-}
 
-function explodeParticles(x, y) {
-    for (let i = 0; i < 60; i++) {
-        particles.push(new Particle(x, y, 'explosion'));
-    }
-}
-
-function animateParticles() {
-    ctx.clearRect(0, 0, particlesOverlay.width, particlesOverlay.height);
-
-    particles = particles.filter(p => p.life > 0 && p.size > 0);
-
-    particles.forEach(p => {
-        p.update();
-        p.draw();
-    });
-
-    requestAnimationFrame(animateParticles);
-}
-
-// Add CSS animation for notifications
-const style = document.createElement('style');
-style.textContent = `
+    // Add CSS animation for notifications
+    const style = document.createElement('style');
+    style.textContent = `
     @keyframes slideIn {
         from { transform: translateX(120%); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
@@ -435,13 +473,13 @@ style.textContent = `
         to { transform: translateX(120%); opacity: 0; }
     }
 `;
-document.head.appendChild(style);
+    document.head.appendChild(style);
 
-// Override notification to trigger explosion center screen on success
-const originalShowNotification = showNotification;
-showNotification = function (message, type) {
-    if (type === 'success') {
-        explodeParticles(window.innerWidth / 2, window.innerHeight / 2);
-    }
-    originalShowNotification(message, type);
-};
+    // Override notification to trigger explosion center screen on success
+    const originalShowNotification = showNotification;
+    showNotification = function (message, type) {
+        if (type === 'success') {
+            explodeParticles(window.innerWidth / 2, window.innerHeight / 2);
+        }
+        originalShowNotification(message, type);
+    };
