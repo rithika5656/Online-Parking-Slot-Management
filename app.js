@@ -241,7 +241,83 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSlots();
     refreshUI();
     initParticles();
+    initSystemConsole();
+    initTiltEffect();
 });
+
+/* --- SYSTEM CONSOLE TYPING EFFECT --- */
+function initSystemConsole() {
+    const consoleElement = document.getElementById('system-console');
+    const messages = [
+        "INITIALIZING CORE SYSTEMS...",
+        "CONNECTING TO SATELLITE NETWORK...",
+        "CALIBRATING SENSORS...",
+        "OPTIMIZING NEURAL GRID...",
+        "SYSTEM ONLINE. WAITING FOR INPUT._"
+    ];
+    let messageIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let typeSpeed = 50;
+
+    function type() {
+        const currentMessage = messages[messageIndex];
+
+        if (isDeleting) {
+            consoleElement.textContent = currentMessage.substring(0, charIndex - 1);
+            charIndex--;
+            typeSpeed = 30; // Deleting speed
+        } else {
+            consoleElement.textContent = currentMessage.substring(0, charIndex + 1);
+            charIndex++;
+            typeSpeed = 50 + Math.random() * 50; // Human-like typing variance
+        }
+
+        if (!isDeleting && charIndex === currentMessage.length) {
+            // Finished typing
+            if (messageIndex === messages.length - 1) {
+                // Last message, keep it blinking
+                consoleElement.innerHTML = currentMessage.replace('_', '') + '<span class="cursor-blink">_</span>';
+                return;
+            }
+            isDeleting = true;
+            typeSpeed = 1000; // Pause at end
+        } else if (isDeleting && charIndex === 0) {
+            isDeleting = false;
+            messageIndex++;
+            typeSpeed = 500; // Pause before next message
+        }
+
+        setTimeout(type, typeSpeed);
+    }
+
+    type();
+}
+
+/* --- 3D PARALLAX TILT EFFECT --- */
+function initTiltEffect() {
+    const container = document.querySelector('.app-container');
+
+    document.addEventListener('mousemove', (e) => {
+        if (window.innerWidth < 1024) return; // Disable on mobile
+
+        const x = (window.innerWidth / 2 - e.clientX) / 100; // Divide by 100 for subtle effect
+        const y = (window.innerHeight / 2 - e.clientY) / 100;
+
+        // requestAnimationFrame for performance
+        window.requestAnimationFrame(() => {
+            container.style.transition = 'transform 0.1s ease-out'; // Smooth follow
+            container.style.transform = `perspective(2000px) rotateY(${x}deg) rotateX(${y}deg)`;
+        });
+    });
+
+    // Reset on mouse leave
+    document.addEventListener('mouseleave', () => {
+        container.style.transition = 'transform 0.5s ease';
+        container.style.transform = 'perspective(2000px) rotateY(0deg) rotateX(0deg)';
+    });
+}
+
 
 /* --- PARTICLE SYSTEM --- */
 let particlesOverlay;
