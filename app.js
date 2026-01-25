@@ -176,35 +176,99 @@ function bookSlot(slotId, vehicleNum, owner, email) {
 function sendConfirmationEmail(details) {
     const consoleElement = document.getElementById('system-console');
 
-    // Simulate Satellite Transmission Logic (Visual effect)
-    if (consoleElement) {
-        consoleElement.innerHTML = `<span style="color: var(--primary)">ENCRYPTING DATA...</span>`;
+    // 1. Get Keys from LocalStorage
+    const settings = JSON.parse(localStorage.getItem('emailSettings')) || {};
+    const { serviceID, templateID, publicKey } = settings;
+
+    // 2. Check Configuration
+    if (serviceID && templateID && publicKey && typeof emailjs !== 'undefined') {
+
+        if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--primary)">CONNECTING TO SECURE EMAIL SERVER...</span>`;
+
+        // Re-init with user key if needed
+        emailjs.init(publicKey);
+
+        const templateParams = {
+            to_name: details.name,
+            to_email: details.email,
+            slot_number: details.slot,
+            vehicle_number: details.vehicle,
+            booking_time: details.time,
+            message: `Your booking for vehicle ${details.vehicle} at slot ${details.slot} is confirmed.`
+        };
+
+        emailjs.send(serviceID, templateID, templateParams)
+            .then(() => {
+                console.log('SUCCESS!');
+                if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--success)">REAL EMAIL SENT SUCCESSFULLY!</span>`;
+                showNotification(`Email sent to ${details.email}`, 'success');
+            }, (error) => {
+                console.log('FAILED...', error);
+                if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--danger)">EMAIL FAILED. CHECK SETTINGS.</span>`;
+                // If fail, show modal
+                setTimeout(() => showVirtualEmailModal(details), 1000);
+            });
+
+    } else {
+        // Fallback: Show Virtual Email Modal + Prompt to Configure
+        if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--text-muted)">SIMULATING TRANSMISSION (NO KEYS)...</span>`;
         setTimeout(() => {
-            consoleElement.innerHTML = `<span style="color: var(--primary)">CONNECTING TO RELAY...</span>`;
-        }, 800);
+            showVirtualEmailModal(details);
+            showNotification('Tip: Use Settings ⚙️ to enable real emails!', 'info');
+        }, 1500);
     }
+}
 
-    // 1. Try sending via EmailJS if configured
-    const serviceID = 'YOUR_SERVICE_ID';
-    const templateID = 'YOUR_TEMPLATE_ID';
+// Open Settings Modal
+function openSettings() {
+    const existing = document.querySelector('.email-modal-overlay');
+    if (existing) existing.remove();
 
-    if (typeof emailjs !== 'undefined' && serviceID !== 'YOUR_SERVICE_ID') {
-        // EmailJS Logic (as before)
-        // ... (simplified for brevity, fallback will run)
+    const settings = JSON.parse(localStorage.getItem('emailSettings')) || {};
+
+    const modalHTML = `
+        <div class="email-modal-overlay">
+            <div class="config-modal">
+                <h3>📧 Email Configuration</h3>
+                <div class="config-group">
+                    <label>Public Key</label>
+                    <input type="text" id="cfg-public" value="${settings.publicKey || ''}" placeholder="e.g. User_K12345...">
+                </div>
+                <div class="config-group">
+                    <label>Service ID</label>
+                    <input type="text" id="cfg-service" value="${settings.serviceID || ''}" placeholder="e.g. service_xyz...">
+                </div>
+                <div class="config-group">
+                    <label>Template ID</label>
+                    <input type="text" id="cfg-template" value="${settings.templateID || ''}" placeholder="e.g. template_abc...">
+                </div>
+                <button class="btn-save-config" onclick="saveSettings()">Save & Connect</button>
+                <a href="https://dashboard.emailjs.com/admin" target="_blank" class="help-link">Where do I find these?</a>
+                <button class="btn-close-email" style="background:transparent; color:#888; margin-top:10px; width:100%" onclick="this.closest('.email-modal-overlay').remove()">Cancel</button>
+            </div>
+        </div>
+    `;
+
+    const range = document.createRange();
+    const fragment = range.createContextualFragment(modalHTML);
+    document.body.appendChild(fragment);
+}
+
+function saveSettings() {
+    const publicKey = document.getElementById('cfg-public').value.trim();
+    const serviceID = document.getElementById('cfg-service').value.trim();
+    const templateID = document.getElementById('cfg-template').value.trim();
+
+    if (publicKey && serviceID && templateID) {
+        localStorage.setItem('emailSettings', JSON.stringify({ publicKey, serviceID, templateID }));
+        showNotification('Settings saved! Emails enabled.', 'success');
+        document.querySelector('.email-modal-overlay').remove();
+
+        // Init immediately
+        if (typeof emailjs !== 'undefined') emailjs.init(publicKey);
+    } else {
+        showNotification('Please fill all fields', 'error');
     }
-
-    // 2. ALWAYS Show Virtual Email Modal (Simulation Mode) 
-    // This ensures the user SEES the email content effectively "received"
-    setTimeout(() => {
-        showVirtualEmailModal(details);
-
-        if (consoleElement) {
-            consoleElement.innerHTML = `<span style="color: var(--success)">TRANSMISSION COMPLETE.</span>`;
-            setTimeout(() => {
-                consoleElement.innerHTML = `SYSTEM ONLINE. WAITING FOR INPUT.<span class="cursor-blink">_</span>`;
-            }, 3000);
-        }
-    }, 2000);
 }
 
 function showVirtualEmailModal(details) {
@@ -243,7 +307,12 @@ function showVirtualEmailModal(details) {
                             <strong>Slot:</strong> <span style="color:#1a73e8; font-weight:bold">${details.slot}</span><br>
                             <strong>Status:</strong> Confirmed
                         </div>
-                        <p>Thank you for choosing SmartPark.</p>
+                        
+                        <a href="#" class="btn-download-token" onclick="downloadToken('${details.slot}', '${details.vehicle}', '${details.name}', '${details.time}')">
+                            <i class="fas fa-download"></i> Download Token
+                        </a>
+
+                        <p style="margin-top:15px">Thank you for choosing SmartPark.</p>
                     </div>
                 </div>
                 <div class="email-footer">
@@ -263,12 +332,55 @@ function showVirtualEmailModal(details) {
     // }, 1000);
 }
 
+// Function to download booking token
+function downloadToken(slot, vehicle, name, time) {
+    const tokenContent = `
+========================================
+       SMARTPARK - PARKING TOKEN
+========================================
+
+Booking Reference: #SP-${Date.now().toString().slice(-6)}
+Date: ${time}
+
+----------------------------------------
+User Details:
+  Name:    ${name}
+  Vehicle: ${vehicle}
+
+Slot Details:
+  Slot No: ${slot}
+  Status:  CONFIRMED
+----------------------------------------
+
+Please show this token at the entry gate.
+    
+========================================
+    Powering Smart Campuses
+========================================
+    `;
+
+    const blob = new Blob([tokenContent], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SmartPark_Token_${slot}_${vehicle}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+
+    showNotification('Token downloaded successfully!', 'success');
+}
+
 function openMailClient(details) {
     // Deprecated in favor of Modal for clearer demo
 }
 
 // Release a slot
 function releaseSlot(slotId) {
+    // Add confirmation
+    if (!confirm('Are you sure you want to release this slot?')) {
+        return;
+    }
+
     const slots = getSlots();
     const slotIndex = slots.findIndex(s => s.id === parseInt(slotId));
 
@@ -281,7 +393,13 @@ function releaseSlot(slotId) {
         slots[slotIndex].ownerEmail = null;
         slots[slotIndex].bookedAt = null;
         saveSlots(slots);
-        refreshUI();
+
+        // Immediate UI Update
+        if (document.getElementById('bookings-body')) {
+            renderBookings(); // Force re-render of table
+        }
+        refreshUI(); // Update other stats
+
         showNotification('Slot released successfully!', 'success');
 
         // Optional: Notify release
@@ -374,6 +492,14 @@ document.addEventListener('DOMContentLoaded', () => {
         // Bookings Page
         renderBookings();
     }
+
+    // Add Settings Button
+    const settingsBtn = document.createElement('div');
+    settingsBtn.className = 'settings-btn';
+    settingsBtn.innerHTML = '⚙️';
+    settingsBtn.title = 'Configure Real Email';
+    settingsBtn.onclick = openSettings;
+    document.body.appendChild(settingsBtn);
 });
 
 /* --- SYSTEM CONSOLE TYPING EFFECT --- */
