@@ -622,7 +622,139 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Clock and Sound
     initClock();
     soundManager.init();
+    voiceManager.init(); // Init Voice Assistant
 });
+
+/* --- TRIGGER 3D PARKING SIMULATION --- */
+// ... (code remains)
+
+/* --- VOICE ASSISTANT MANAGER --- */
+const voiceManager = {
+    recognition: null,
+    isListening: false,
+
+    init() {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            console.log("Voice API not supported");
+            return;
+        }
+
+        // Create UI Elements
+        const btn = document.createElement('button');
+        btn.className = 'voice-btn';
+        btn.innerHTML = '<i class="fas fa-microphone"></i>';
+        btn.title = 'Voice Assistant';
+        btn.onclick = () => this.toggle();
+        document.body.appendChild(btn);
+        this.btn = btn;
+
+        const feedback = document.createElement('div');
+        feedback.className = 'voice-feedback';
+        feedback.innerHTML = `
+            <div class="voice-wave">
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+                <div class="voice-bar"></div>
+            </div>
+            <span id="voice-text">Listening...</span>
+        `;
+        document.body.appendChild(feedback);
+        this.feedback = feedback;
+        this.feedbackText = feedback.querySelector('#voice-text');
+
+        // Setup API
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.recognition = new SpeechRecognition();
+        this.recognition.continuous = false;
+        this.recognition.lang = 'en-US';
+
+        this.recognition.onstart = () => {
+            this.isListening = true;
+            this.btn.classList.add('listening');
+            this.feedback.style.display = 'flex';
+            this.feedbackText.textContent = "Listening...";
+            soundManager.play('hover');
+        };
+
+        this.recognition.onend = () => {
+            this.isListening = false;
+            this.btn.classList.remove('listening');
+            this.feedback.style.display = 'none';
+        };
+
+        this.recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.toLowerCase();
+            this.feedbackText.textContent = `"${transcript}"`;
+            this.processCommand(transcript);
+        };
+
+        this.recognition.onerror = (event) => {
+            this.feedbackText.textContent = "Error";
+            setTimeout(() => this.recognition.stop(), 1000);
+        };
+    },
+
+    toggle() {
+        if (this.isListening) {
+            this.recognition.stop();
+        } else {
+            this.recognition.start();
+        }
+    },
+
+    processCommand(cmd) {
+        console.log("Voice Command:", cmd);
+
+        // Command: "Release Slot [Number]"
+        if (cmd.includes('release slot')) {
+            const match = cmd.match(/\d+/);
+            if (match) {
+                const slotNum = match[0];
+                // Find slot ID by number (simulated logic since id usually matches number in this demo but might differ)
+                // In our mock data, P01 -> id 1, etc.
+                const slots = getSlots();
+                const target = slots.find(s => s.slotNumber === `P0${slotNum}` || s.slotNumber === `P${slotNum}`);
+
+                if (target) {
+                    if (target.isOccupied) {
+                        releaseSlot(target.id);
+                        this.speak(`Released slot ${target.slotNumber}`);
+                    } else {
+                        this.speak(`Slot ${target.slotNumber} is already free`);
+                        showNotification(`Slot ${target.slotNumber} is already free`, 'info');
+                    }
+                } else {
+                    this.speak("Slot not found");
+                }
+            }
+        }
+        // Command: "Scroll to [Section]"
+        else if (cmd.includes('go to bookings') || cmd.includes('show bookings')) {
+            const section = document.querySelector('.bookings-list');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth' });
+                this.speak("Showing bookings");
+            } else {
+                // If separate page (old version), redirect
+                window.location.href = 'bookings.html';
+            }
+        }
+        else if (cmd.includes('go to dashboard')) {
+            window.location.href = 'index.html';
+        }
+        else {
+            this.speak("Command not recognized");
+            // showNotification(`Unknown command: "${cmd}"`, 'error');
+        }
+    },
+
+    speak(text) {
+        const utterance = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utterance);
+    }
+};
 
 /* --- LIVE CLOCK --- */
 function initClock() {
