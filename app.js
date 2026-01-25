@@ -503,8 +503,157 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Intro and Cursor
     initCursor();
+
+    // Initialize Clock and Sound
+    initClock();
+    soundManager.init();
 });
 
+/* --- LIVE CLOCK --- */
+function initClock() {
+    const clockDiv = document.createElement('div');
+    clockDiv.className = 'live-clock';
+    clockDiv.innerHTML = '<span id="time-display">00:00:00</span><span class="date" id="date-display">LOADING...</span>';
+
+    // Insert into header
+    const header = document.querySelector('header');
+    if (header) {
+        header.appendChild(clockDiv);
+        // Make header relative for positioning if not already
+        if (getComputedStyle(header).position === 'static') {
+            header.style.position = 'relative';
+        }
+    }
+
+    function updateTime() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+        const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase();
+
+        const timeEl = document.getElementById('time-display');
+        const dateEl = document.getElementById('date-display');
+
+        if (timeEl) timeEl.textContent = timeStr;
+        if (dateEl) dateEl.textContent = dateStr;
+    }
+
+    setInterval(updateTime, 1000);
+    updateTime();
+}
+
+/* --- SOUND FX MANAGER --- */
+const soundManager = {
+    audioCtx: null,
+    enabled: false,
+
+    init() {
+        // Create Toggle Button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'sound-toggle';
+        toggleBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        toggleBtn.title = 'Enable Sound Effects';
+        toggleBtn.onclick = () => this.toggle(toggleBtn);
+        document.body.appendChild(toggleBtn);
+
+        // Setup shared AudioContext interaction listener
+        const resumeAudio = () => {
+            if (this.enabled && this.audioCtx && this.audioCtx.state === 'suspended') {
+                this.audioCtx.resume();
+            }
+            window.removeEventListener('click', resumeAudio);
+        };
+        window.addEventListener('click', resumeAudio);
+    },
+
+    toggle(btn) {
+        this.enabled = !this.enabled;
+
+        if (this.enabled) {
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-volume-up"></i>';
+            if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            this.play('success'); // Feedback
+        } else {
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+        }
+    },
+
+    play(type) {
+        if (!this.enabled || !this.audioCtx) return;
+
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        const now = this.audioCtx.currentTime;
+
+        if (type === 'hover') {
+            // High tech blip
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+            gain.gain.setValueAtTime(0.05, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now);
+            osc.stop(now + 0.05);
+        } else if (type === 'click') {
+            // Low mechanical click
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+            osc.start(now);
+            osc.stop(now + 0.1);
+        } else if (type === 'success') {
+            // Major chord
+            this.playNote(523.25, 0); // C5
+            this.playNote(659.25, 0.1); // E5
+            this.playNote(783.99, 0.2); // G5
+        } else if (type === 'error') {
+            // Error buzz
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        }
+    },
+
+    playNote(freq, delay) {
+        const osc = this.audioCtx.createOscillator();
+        const gain = this.audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(this.audioCtx.destination);
+
+        const now = this.audioCtx.currentTime + delay;
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.1, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+        osc.start(now);
+        osc.stop(now + 0.5);
+    }
+};
+
+// Hook up Hover Sounds Global
+document.addEventListener('mouseover', (e) => {
+    if (e.target.matches('button, a, .slot, input, select, .settings-btn')) {
+        soundManager.play('hover');
+    }
+});
+document.addEventListener('click', (e) => {
+    if (e.target.matches('button, a, .slot, input, select, .settings-btn')) {
+        soundManager.play('click');
+    }
+});
 
 /* --- CUSTOM CURSOR --- */
 function initCursor() {
