@@ -591,16 +591,11 @@ document.addEventListener('DOMContentLoaded', () => {
     initSystemConsole();
     initTiltEffect();
 
-    // Page Specific Logic
-    if (document.getElementById('slots-container')) {
-        // Dashboard Page
-        refreshUI();
-    }
-
-    if (document.getElementById('bookings-body')) {
-        // Bookings Page
-        renderBookings();
-    }
+    // Initialize all app components
+    populateSlotDropdown();
+    renderParkingGrid();
+    updateStats();
+    renderBookings(); // Now always renders
 
     // Add Settings Button
     const settingsBtn = document.createElement('div');
