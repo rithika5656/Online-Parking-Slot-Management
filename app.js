@@ -53,6 +53,7 @@ function renderParkingGrid() {
     slots.forEach(slot => {
         const slotDiv = document.createElement('div');
         slotDiv.className = `slot ${slot.isOccupied ? 'occupied' : 'available'}`;
+        slotDiv.dataset.id = slot.id; // Added for animation targeting
         slotDiv.innerHTML = `
             <div class="slot-header">
                 <span class="slot-id">${slot.slotNumber}</span>
@@ -115,6 +116,9 @@ function populateSlotDropdown() {
     });
 }
 
+// Rate per hour
+const HOURLY_RATE = 50;
+
 // Render bookings table
 function renderBookings() {
     const slots = getSlots();
@@ -136,6 +140,8 @@ function renderBookings() {
             <td>${slot.vehicleNumber}</td>
             <td>${slot.ownerName}</td>
             <td>${new Date(slot.bookedAt).toLocaleString()}</td>
+            <td>${slot.duration}h</td>
+            <td>₹${slot.amount}</td>
             <td>
                 <button class="btn-release" onclick="releaseSlot(${slot.id})">
                     Release
@@ -146,7 +152,7 @@ function renderBookings() {
 }
 
 // Book a slot
-function bookSlot(slotId, vehicleNum, owner, email) {
+function bookSlot(slotId, vehicleNum, owner, email, duration) {
     const slots = getSlots();
     const slotIndex = slots.findIndex(s => s.id === parseInt(slotId));
 
@@ -155,6 +161,8 @@ function bookSlot(slotId, vehicleNum, owner, email) {
         slots[slotIndex].vehicleNumber = vehicleNum.toUpperCase();
         slots[slotIndex].ownerName = owner;
         slots[slotIndex].ownerEmail = email;
+        slots[slotIndex].duration = duration;
+        slots[slotIndex].amount = duration * HOURLY_RATE;
         slots[slotIndex].bookedAt = new Date().toISOString();
         saveSlots(slots);
 
@@ -164,19 +172,104 @@ function bookSlot(slotId, vehicleNum, owner, email) {
             name: owner,
             vehicle: vehicleNum.toUpperCase(),
             email: email,
-            time: new Date().toLocaleString()
+            time: new Date().toLocaleString(),
+            duration: duration,
+            amount: slots[slotIndex].amount
         });
 
         soundManager.play('success'); // Play Success Sound
+
+        // --- TRIGGER 3D PARKING SIMULATION ---
+        simulateParking(slots[slotIndex].id);
+
         return true;
     }
     soundManager.play('error'); // Play Error Sound
     return false;
 }
 
+/* --- 3D PARKING SIMULATION --- */
+function simulateParking(slotId) {
+    // Check Lite Mode (disable animations for performance/recording)
+    const settings = JSON.parse(localStorage.getItem('emailSettings')) || {};
+    if (settings.liteMode) return;
+
+    const slotEl = document.querySelector(`.slot[data-id="${slotId}"]`);
+    if (!slotEl) return;
+
+    // Create Car Element
+    const car = document.createElement('div');
+    car.className = 'moving-car';
+    car.innerHTML = `
+        <div class="car-body">
+            <div class="car-lights-front">
+                <div class="car-light"></div>
+                <div class="car-light"></div>
+            </div>
+            <div class="car-lights-back">
+                <div class="car-light-red"></div>
+                <div class="car-light-red"></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(car);
+
+    // Initial Position (Bottom Center of Screen)
+    const startX = window.innerWidth / 2 - 30; // Half car width
+    const startY = window.innerHeight + 100; // Below screen
+
+    car.style.left = `${startX}px`;
+    car.style.top = `${startY}px`;
+    car.style.transform = `scale(2) rotate(0deg)`; // Start Big
+
+    // Get Target Slot Position
+    const rect = slotEl.getBoundingClientRect();
+    const targetX = rect.left + rect.width / 2 - 30;
+    const targetY = rect.top + rect.height / 2 - 50;
+
+    // SOUND: Revving Engine
+    soundManager.play('hover'); // Re-use hover sound (high pitch) as rev
+
+    // Step 1: Drive In
+    requestAnimationFrame(() => {
+        car.style.transition = 'top 1s ease-out, transform 1s ease-out';
+        car.style.top = `${window.innerHeight - 200}px`; // Drive to 'entry' point
+        car.style.transform = `scale(1.5)`;
+
+        // Step 2: Drive to Slot
+        setTimeout(() => {
+            car.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1)';
+            car.style.left = `${targetX}px`;
+            car.style.top = `${targetY}px`;
+            car.style.transform = `scale(1) rotate(0deg)`; // Adjust rotation if needed based on slot direction
+
+            // Step 3: Parked Effect
+            setTimeout(() => {
+                slotEl.classList.add('just-parked');
+                car.style.opacity = '0'; // Fade out car (it 'enters' the slot data)
+
+                // Cleanup
+                setTimeout(() => {
+                    car.remove();
+                    slotEl.classList.remove('just-parked');
+                }, 1000);
+            }, 1000);
+        }, 800);
+    });
+}
+
+
 // Mock Email Sending Function
 function sendConfirmationEmail(details) {
     const consoleElement = document.getElementById('system-console');
+
+    // Simulate Satellite Transmission Logic (Visual effect)
+    if (consoleElement) {
+        consoleElement.innerHTML = `<span style="color: var(--primary)">ENCRYPTING DATA...</span>`;
+        setTimeout(() => {
+            consoleElement.innerHTML = `<span style="color: var(--primary)">CONNECTING TO RELAY...</span>`;
+        }, 800);
+    }
 
     // 1. Get Keys from LocalStorage
     const settings = JSON.parse(localStorage.getItem('emailSettings')) || {};
@@ -196,7 +289,7 @@ function sendConfirmationEmail(details) {
             slot_number: details.slot,
             vehicle_number: details.vehicle,
             booking_time: details.time,
-            message: `Your booking for vehicle ${details.vehicle} at slot ${details.slot} is confirmed.`
+            message: `Your booking for vehicle ${details.vehicle} at slot ${details.slot} is confirmed. Duration: ${details.duration}h. Amount: ₹${details.amount}.`
         };
 
         emailjs.send(serviceID, templateID, templateParams)
@@ -231,7 +324,18 @@ function openSettings() {
     const modalHTML = `
         <div class="email-modal-overlay">
             <div class="config-modal">
-                <h3>📧 Email Configuration</h3>
+                <h3>⚙️ System Configuration</h3>
+                
+                <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
+                    <label style="display:flex; align-items:center; cursor:pointer;">
+                        <input type="checkbox" id="cfg-lite" ${settings.liteMode ? 'checked' : ''} style="width:20px; height:20px; margin-right:10px;">
+                        <span>
+                            <strong style="display:block; color:var(--primary)">Lite Mode (Fix Recording Issues)</strong>
+                            <span style="font-size:0.8rem; color:#aaa">Disables 3D animations to prevent screen recorder crashes.</span>
+                        </span>
+                    </label>
+                </div>
+
                 <div class="config-group">
                     <label>Public Key</label>
                     <input type="text" id="cfg-public" value="${settings.publicKey || ''}" placeholder="e.g. User_K12345...">
@@ -260,17 +364,18 @@ function saveSettings() {
     const publicKey = document.getElementById('cfg-public').value.trim();
     const serviceID = document.getElementById('cfg-service').value.trim();
     const templateID = document.getElementById('cfg-template').value.trim();
+    const liteMode = document.getElementById('cfg-lite').checked;
 
-    if (publicKey && serviceID && templateID) {
-        localStorage.setItem('emailSettings', JSON.stringify({ publicKey, serviceID, templateID }));
-        showNotification('Settings saved! Emails enabled.', 'success');
-        document.querySelector('.email-modal-overlay').remove();
+    // Use empty string to clear settings if user wants, or keep existing logic
+    // We save whatever is there
+    const settings = { publicKey, serviceID, templateID, liteMode };
+    localStorage.setItem('emailSettings', JSON.stringify(settings));
 
-        // Init immediately
-        if (typeof emailjs !== 'undefined') emailjs.init(publicKey);
-    } else {
-        showNotification('Please fill all fields', 'error');
-    }
+    showNotification('Settings saved successfully!', 'success');
+    document.querySelector('.email-modal-overlay').remove();
+
+    // Init immediately if key exists
+    if (publicKey && typeof emailjs !== 'undefined') emailjs.init(publicKey);
 }
 
 function showVirtualEmailModal(details) {
@@ -459,13 +564,14 @@ if (bookForm) {
         const vehicle = vehicleNumber.value.trim();
         const owner = ownerName.value.trim();
         const email = ownerEmail.value.trim();
+        const duration = parseInt(document.getElementById('duration').value) || 1;
 
         if (!slotId || !vehicle || !owner || !email) {
             showNotification('Please fill all fields!', 'error');
             return;
         }
 
-        if (bookSlot(slotId, vehicle, owner, email)) {
+        if (bookSlot(slotId, vehicle, owner, email, duration)) {
             // Success notification handled in sendConfirmationEmail for better flow
             // showNotification('Slot booked successfully!', 'success'); // Duplicate
             bookForm.reset();
