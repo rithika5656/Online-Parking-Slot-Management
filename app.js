@@ -222,7 +222,6 @@ function populateSlotDropdown() {
         option.value = slot.id;
         option.textContent = slot.slotNumber;
         slotSelect.appendChild(option);
-        ```
     });
 }
 
@@ -377,8 +376,8 @@ function simulateParking(slotId) {
     const startX = window.innerWidth / 2 - 30; // Half car width
     const startY = window.innerHeight + 100; // Below screen
 
-    car.style.left = `${ startX } px`;
-    car.style.top = `${ startY } px`;
+    car.style.left = `${startX} px`;
+    car.style.top = `${startY} px`;
     car.style.transform = `scale(2) rotate(0deg)`; // Start Big
 
     // Get Target Slot Position
@@ -392,14 +391,14 @@ function simulateParking(slotId) {
     // Step 1: Drive In
     requestAnimationFrame(() => {
         car.style.transition = 'top 1s ease-out, transform 1s ease-out';
-        car.style.top = `${ window.innerHeight - 200 } px`; // Drive to 'entry' point
+        car.style.top = `${window.innerHeight - 200} px`; // Drive to 'entry' point
         car.style.transform = `scale(1.5)`;
 
         // Step 2: Drive to Slot
         setTimeout(() => {
             car.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1)';
-            car.style.left = `${ targetX } px`;
-            car.style.top = `${ targetY } px`;
+            car.style.left = `${targetX} px`;
+            car.style.top = `${targetY} px`;
             car.style.transform = `scale(1) rotate(0deg)`; // Adjust rotation if needed based on slot direction
 
             // Step 3: Parked Effect
@@ -448,14 +447,14 @@ function sendConfirmationEmail(details) {
             slot_number: details.slot,
             vehicle_number: details.vehicle,
             booking_time: details.time,
-            message: `Your booking for vehicle ${ details.vehicle } at slot ${ details.slot } is confirmed.Duration: ${ details.duration } h.Amount: ₹${ details.amount }.`
+            message: `Your booking for vehicle ${details.vehicle} at slot ${details.slot} is confirmed.Duration: ${details.duration} h.Amount: ₹${details.amount}.`
         };
 
         emailjs.send(serviceID, templateID, templateParams)
             .then(() => {
                 console.log('SUCCESS!');
                 if (consoleElement) consoleElement.innerHTML = `< span style = "color: var(--success)" > REAL EMAIL SENT SUCCESSFULLY!</span > `;
-                showNotification(`Email sent to ${ details.email } `, 'success');
+                showNotification(`Email sent to ${details.email} `, 'success');
             }, (error) => {
                 console.log('FAILED...', error);
                 if (consoleElement) consoleElement.innerHTML = `< span style = "color: var(--danger)" > EMAIL FAILED.CHECK SETTINGS.</span > `;
