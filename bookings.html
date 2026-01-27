@@ -35,7 +35,20 @@
 
         <main style="display: block;">
             <section class="bookings-list">
-                <h2>Current Bookings</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h2>Current Bookings</h2>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn-action" onclick="exportBookingsToCSV()" title="Export to CSV">
+                            <i class="fas fa-file-csv"></i> Export CSV
+                        </button>
+                        <button class="btn-action" onclick="backupDatabase()" title="Backup Database">
+                            <i class="fas fa-download"></i> Backup
+                        </button>
+                        <button class="btn-action" onclick="restoreDatabase()" title="Restore Database">
+                            <i class="fas fa-upload"></i> Restore
+                        </button>
+                    </div>
+                </div>
                 <div id="bookings-container">
                     <table id="bookings-table">
                         <thead>
