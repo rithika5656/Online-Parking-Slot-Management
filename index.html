@@ -70,28 +70,59 @@
                 <h2>Book a Slot</h2>
                 <form id="book-form">
                     <div class="form-group">
+                        <label for="vehicle-type">Vehicle Type:</label>
+                        <select id="vehicle-type" required aria-label="Select vehicle type">
+                            <option value="">-- Select Vehicle Type --</option>
+                            <option value="car">🚗 Car (₹50/hr)</option>
+                            <option value="bike">🏍️ Bike (₹20/hr)</option>
+                            <option value="truck">🚚 Truck (₹100/hr)</option>
+                            <option value="suv">🚙 SUV (₹75/hr)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label for="vehicle-number">Vehicle Number:</label>
-                        <input type="text" id="vehicle-number" placeholder="Enter vehicle number" required>
+                        <input type="text" id="vehicle-number" placeholder="e.g., KA-01-AB-1234" required
+                            aria-label="Enter vehicle registration number"
+                            pattern="[A-Z]{2}-[0-9]{2}-[A-Z]{1,2}-[0-9]{4}">
+                        <small class="form-hint">Format: XX-00-XX-0000</small>
                     </div>
                     <div class="form-group">
                         <label for="owner-name">Owner Name:</label>
-                        <input type="text" id="owner-name" placeholder="Enter your name" required>
+                        <input type="text" id="owner-name" placeholder="Enter your full name" required
+                            aria-label="Enter owner name" minlength="2">
+                    </div>
+                    <div class="form-group">
+                        <label for="owner-phone">Phone Number:</label>
+                        <input type="tel" id="owner-phone" placeholder="Enter 10-digit phone" required
+                            aria-label="Enter phone number" pattern="[0-9]{10}" maxlength="10">
+                        <small class="form-hint">10 digits only</small>
                     </div>
                     <div class="form-group">
                         <label for="owner-email">Email Address:</label>
-                        <input type="email" id="owner-email" placeholder="Enter your email" required>
+                        <input type="email" id="owner-email" placeholder="your.email@example.com" required
+                            aria-label="Enter email address">
                     </div>
                     <div class="form-group">
                         <label for="duration">Duration (Hours):</label>
-                        <input type="number" id="duration" min="1" max="24" value="1" required>
+                        <input type="number" id="duration" min="1" max="24" value="1" required
+                            aria-label="Select parking duration in hours">
+                        <small class="form-hint" id="price-estimate">Estimated: ₹50</small>
                     </div>
                     <div class="form-group">
                         <label for="slot-select">Select Slot:</label>
-                        <select id="slot-select" required>
+                        <select id="slot-select" required aria-label="Select parking slot">
                             <option value="">-- Select Available Slot --</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn-book">Book Slot</button>
+                    <div class="form-group">
+                        <label for="booking-notes">Notes (Optional):</label>
+                        <textarea id="booking-notes" placeholder="Any special requirements..." rows="3"
+                            aria-label="Additional booking notes" maxlength="200"></textarea>
+                        <small class="form-hint">Max 200 characters</small>
+                    </div>
+                    <button type="submit" class="btn-book" aria-label="Submit booking form">
+                        <i class="fas fa-check-circle"></i> Book Slot
+                    </button>
                 </form>
             </section>
         </main>
