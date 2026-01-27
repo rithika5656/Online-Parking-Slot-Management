@@ -1,18 +1,30 @@
 // Parking Slot Management Application
 const TOTAL_SLOTS = 20;
 
+// Pricing Configuration
+const PRICING = {
+    car: 50,
+    bike: 20,
+    truck: 100,
+    suv: 75
+};
+
 // DOM Elements
 const slotsContainer = document.getElementById('slots-container');
 const availableCount = document.getElementById('available-count');
 const occupiedCount = document.getElementById('occupied-count');
 const totalCount = document.getElementById('total-count');
 const bookForm = document.getElementById('book-form');
+const vehicleType = document.getElementById('vehicle-type');
 const vehicleNumber = document.getElementById('vehicle-number');
 const ownerName = document.getElementById('owner-name');
+const ownerPhone = document.getElementById('owner-phone');
 const ownerEmail = document.getElementById('owner-email');
 const slotSelect = document.getElementById('slot-select');
 const bookingsBody = document.getElementById('bookings-body');
 const noBookings = document.getElementById('no-bookings');
+const bookingNotes = document.getElementById('booking-notes');
+const priceEstimate = document.getElementById('price-estimate');
 
 // Initialize parking slots
 function initializeSlots() {
@@ -116,8 +128,11 @@ function populateSlotDropdown() {
     });
 }
 
-// Rate per hour
-const HOURLY_RATE = 50;
+// Calculate price based on vehicle type and duration
+function calculatePrice(vehicleType, duration) {
+    const rate = PRICING[vehicleType] || 50;
+    return rate * duration;
+}
 
 // Render bookings table
 function renderBookings() {
@@ -152,29 +167,49 @@ function renderBookings() {
 }
 
 // Book a slot
-function bookSlot(slotId, vehicleNum, owner, email, duration) {
+function bookSlot(slotId, vType, vehicleNum, owner, phone, email, duration, notes) {
     const slots = getSlots();
     const slotIndex = slots.findIndex(s => s.id === parseInt(slotId));
 
     if (slotIndex !== -1 && !slots[slotIndex].isOccupied) {
+        const amount = calculatePrice(vType, duration);
+
         slots[slotIndex].isOccupied = true;
+        slots[slotIndex].vehicleType = vType;
         slots[slotIndex].vehicleNumber = vehicleNum.toUpperCase();
         slots[slotIndex].ownerName = owner;
+        slots[slotIndex].ownerPhone = phone;
         slots[slotIndex].ownerEmail = email;
         slots[slotIndex].duration = duration;
-        slots[slotIndex].amount = duration * HOURLY_RATE;
+        slots[slotIndex].amount = amount;
+        slots[slotIndex].notes = notes || '';
         slots[slotIndex].bookedAt = new Date().toISOString();
+        slots[slotIndex].expiresAt = new Date(Date.now() + duration * 60 * 60 * 1000).toISOString();
         saveSlots(slots);
+
+        // Add to history
+        ParkingDB.addToHistory({
+            action: 'BOOKED',
+            slotNumber: slots[slotIndex].slotNumber,
+            vehicleType: vType,
+            vehicleNumber: vehicleNum.toUpperCase(),
+            ownerName: owner,
+            amount: amount,
+            duration: duration
+        });
 
         // Trigger Email Sending
         sendConfirmationEmail({
             slot: slots[slotIndex].slotNumber,
             name: owner,
+            phone: phone,
             vehicle: vehicleNum.toUpperCase(),
+            vehicleType: vType,
             email: email,
             time: new Date().toLocaleString(),
             duration: duration,
-            amount: slots[slotIndex].amount
+            amount: amount,
+            notes: notes
         });
 
         soundManager.play('success'); // Play Success Sound
@@ -565,24 +600,48 @@ function refreshUI() {
 
 // Form submission handler
 if (bookForm) {
+    // Real-time price estimation
+    const updatePriceEstimate = () => {
+        const vType = vehicleType?.value || 'car';
+        const duration = parseInt(document.getElementById('duration')?.value) || 1;
+        const price = calculatePrice(vType, duration);
+        if (priceEstimate) {
+            priceEstimate.textContent = `Estimated: ₹${price}`;
+        }
+    };
+
+    if (vehicleType) vehicleType.addEventListener('change', updatePriceEstimate);
+    if (document.getElementById('duration')) {
+        document.getElementById('duration').addEventListener('input', updatePriceEstimate);
+    }
+
     bookForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
         const slotId = slotSelect.value;
+        const vType = vehicleType?.value || 'car';
         const vehicle = vehicleNumber.value.trim();
         const owner = ownerName.value.trim();
+        const phone = ownerPhone?.value.trim() || '';
         const email = ownerEmail.value.trim();
         const duration = parseInt(document.getElementById('duration').value) || 1;
+        const notes = bookingNotes?.value.trim() || '';
 
-        if (!slotId || !vehicle || !owner || !email) {
-            showNotification('Please fill all fields!', 'error');
+        // Validation
+        if (!vType || !slotId || !vehicle || !owner || !email) {
+            showNotification('Please fill all required fields!', 'error');
             return;
         }
 
-        if (bookSlot(slotId, vehicle, owner, email, duration)) {
-            // Success notification handled in sendConfirmationEmail for better flow
-            // showNotification('Slot booked successfully!', 'success'); // Duplicate
+        // Phone validation (if field exists)
+        if (phone && !/^[0-9]{10}$/.test(phone)) {
+            showNotification('Please enter a valid 10-digit phone number!', 'error');
+            return;
+        }
+
+        if (bookSlot(slotId, vType, vehicle, owner, phone, email, duration, notes)) {
             bookForm.reset();
+            updatePriceEstimate(); // Reset estimate
             refreshUI();
         } else {
             showNotification('Failed to book slot. Please try again.', 'error');
