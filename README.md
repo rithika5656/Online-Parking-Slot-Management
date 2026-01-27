@@ -9,7 +9,7 @@ A modern, feature-rich parking slot management system with real-time tracking, a
 ## ✨ Features
 
 ### Core Functionality
-- 🚗 **Multi-Vehicle Support**: Car, Bike, Truck, SUV with dynamic pricing
+- 🚗 **Car Parking**: Dedicated car parking management with fixed pricing
 - 📊 **Real-time Dashboard**: Live slot availability and statistics
 - 💰 **Smart Pricing**: Vehicle type-based pricing system
 - 📱 **Responsive Design**: Works on all devices
@@ -112,14 +112,9 @@ Then visit: `http://localhost:8000`
 ## 🎨 Customization
 
 ### Pricing
-Edit `app.js` to modify pricing:
+Edit `app.js` to modify car parking rate:
 ```javascript
-const PRICING = {
-    car: 50,    // ₹50/hour
-    bike: 20,   // ₹20/hour
-    truck: 100, // ₹100/hour
-    suv: 75     // ₹75/hour
-};
+const HOURLY_RATE = 50; // ₹50/hour for cars
 ```
 
 ### Total Slots
