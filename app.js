@@ -698,6 +698,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initSensors(); // Init IoT Sensors
     initParticles(); // Init Background Animation
     initHUD(); // Init HUD Search
+    initKeyboardShortcuts(); // Init Keyboard Shortcuts
+    initAutoRefresh(); // Init Auto-refresh
 });
 
 // Open Settings Modal
@@ -1595,3 +1597,218 @@ showNotification = function (message, type) {
     }
     originalShowNotification(message, type);
 };
+
+/* --- KEYBOARD SHORTCUTS --- */
+function initKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + B = Bookings
+        if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+            e.preventDefault();
+            window.location.href = 'bookings.html';
+        }
+        // Ctrl/Cmd + D = Dashboard
+        if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+            e.preventDefault();
+            window.location.href = 'index.html';
+        }
+        // Ctrl/Cmd + A = Analytics
+        if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+            e.preventDefault();
+            window.location.href = 'analytics.html';
+        }
+        // Ctrl/Cmd + S = Settings
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            openSettings();
+        }
+        // Escape = Close modals
+        if (e.key === 'Escape') {
+            const modal = document.querySelector('.email-modal-overlay');
+            if (modal) modal.remove();
+        }
+    });
+}
+
+/* --- AUTO-REFRESH --- */
+let autoRefreshInterval = null;
+
+function initAutoRefresh() {
+    // Auto-refresh every 30 seconds
+    autoRefreshInterval = setInterval(() => {
+        if (document.getElementById('slots-container')) {
+            refreshUI();
+            console.log('🔄 Auto-refreshed at', new Date().toLocaleTimeString());
+        }
+    }, 30000); // 30 seconds
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+/* --- EXPORT BOOKINGS TO CSV --- */
+function exportBookingsToCSV() {
+    const slots = getSlots();
+    const occupiedSlots = slots.filter(s => s.isOccupied);
+
+    if (occupiedSlots.length === 0) {
+        showNotification('No bookings to export!', 'error');
+        return;
+    }
+
+    // CSV Header
+    let csv = 'Slot Number,Vehicle Type,Vehicle Number,Owner Name,Phone,Email,Duration (hrs),Amount (₹),Booked At,Notes\n';
+
+    // CSV Rows
+    occupiedSlots.forEach(slot => {
+        csv += `${slot.slotNumber},`;
+        csv += `${slot.vehicleType || 'N/A'},`;
+        csv += `${slot.vehicleNumber},`;
+        csv += `${slot.ownerName},`;
+        csv += `${slot.ownerPhone || 'N/A'},`;
+        csv += `${slot.ownerEmail},`;
+        csv += `${slot.duration},`;
+        csv += `${slot.amount},`;
+        csv += `${new Date(slot.bookedAt).toLocaleString()},`;
+        csv += `"${(slot.notes || '').replace(/"/g, '""')}"\n`;
+    });
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SmartPark_Bookings_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    showNotification('Bookings exported to CSV!', 'success');
+}
+
+/* --- BACKUP & RESTORE DATABASE --- */
+function backupDatabase() {
+    const data = ParkingDB.exportData();
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SmartPark_Backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showNotification('Database backed up successfully!', 'success');
+}
+
+function restoreDatabase() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const success = ParkingDB.importData(event.target.result);
+                if (success) {
+                    showNotification('Database restored successfully!', 'success');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showNotification('Failed to restore database!', 'error');
+                }
+            } catch (error) {
+                showNotification('Invalid backup file!', 'error');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+/* --- PRINT RECEIPT --- */
+function printReceipt(slotId) {
+    const slots = getSlots();
+    const slot = slots.find(s => s.id === parseInt(slotId));
+
+    if (!slot || !slot.isOccupied) {
+        showNotification('Slot not found or not occupied!', 'error');
+        return;
+    }
+
+    const printWindow = window.open('', '_blank', 'width=600,height=800');
+    printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>SmartPark Receipt - ${slot.slotNumber}</title>
+            <style>
+                body {
+                    font-family: 'Courier New', monospace;
+                    padding: 40px;
+                    max-width: 600px;
+                    margin: 0 auto;
+                }
+                .receipt {
+                    border: 2px solid #000;
+                    padding: 20px;
+                }
+                .header {
+                    text-align: center;
+                    border-bottom: 2px dashed #000;
+                    padding-bottom: 20px;
+                    margin-bottom: 20px;
+                }
+                .row {
+                    display: flex;
+                    justify-content: space-between;
+                    margin: 10px 0;
+                }
+                .total {
+                    border-top: 2px solid #000;
+                    margin-top: 20px;
+                    padding-top: 20px;
+                    font-size: 1.2em;
+                    font-weight: bold;
+                }
+                @media print {
+                    body { padding: 0; }
+                    .no-print { display: none; }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="receipt">
+                <div class="header">
+                    <h1>🅿️ SMARTPARK</h1>
+                    <p>Parking Receipt</p>
+                    <p>Reference: #SP-${Date.now().toString().slice(-8)}</p>
+                </div>
+                <div class="row"><span>Slot Number:</span><strong>${slot.slotNumber}</strong></div>
+                <div class="row"><span>Vehicle Type:</span><span>${(slot.vehicleType || 'N/A').toUpperCase()}</span></div>
+                <div class="row"><span>Vehicle Number:</span><strong>${slot.vehicleNumber}</strong></div>
+                <div class="row"><span>Owner Name:</span><span>${slot.ownerName}</span></div>
+                <div class="row"><span>Phone:</span><span>${slot.ownerPhone || 'N/A'}</span></div>
+                <div class="row"><span>Email:</span><span>${slot.ownerEmail}</span></div>
+                <div class="row"><span>Duration:</span><span>${slot.duration} hour(s)</span></div>
+                <div class="row"><span>Booked At:</span><span>${new Date(slot.bookedAt).toLocaleString()}</span></div>
+                ${slot.notes ? `<div class="row"><span>Notes:</span><span>${slot.notes}</span></div>` : ''}
+                <div class="total">
+                    <div class="row"><span>TOTAL AMOUNT:</span><span>₹${slot.amount}</span></div>
+                </div>
+                <div style="text-align: center; margin-top: 30px; font-size: 0.9em;">
+                    <p>Thank you for using SmartPark!</p>
+                    <p>Powered by Intelligent Parking Management</p>
+                </div>
+            </div>
+            <div class="no-print" style="text-align: center; margin-top: 20px;">
+                <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Print Receipt</button>
+                <button onclick="window.close()" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin-left: 10px;">Close</button>
+            </div>
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
