@@ -161,6 +161,43 @@ function updateStats() {
     animateValue(availableCount, parseInt(availableCount.textContent), available, 500);
     animateValue(occupiedCount, parseInt(occupiedCount.textContent), occupied, 500);
     totalCount.textContent = TOTAL_SLOTS;
+
+    // Calculate today's revenue
+    updateTodayRevenue();
+
+    // Check for expiring bookings
+    checkExpiringBookings();
+}
+
+function updateTodayRevenue() {
+    const revenueEl = document.getElementById('today-revenue');
+    if (!revenueEl) return;
+
+    const slots = getSlots();
+    const today = new Date().toDateString();
+
+    const todayRevenue = slots.reduce((sum, slot) => {
+        if (slot.bookedAt && new Date(slot.bookedAt).toDateString() === today) {
+            return sum + (slot.amount || 0);
+        }
+        return sum;
+    }, 0);
+
+    animateValue(revenueEl, parseInt(revenueEl.textContent.replace(/[^0-9]/g, '')) || 0, todayRevenue, 500);
+}
+
+function checkExpiringBookings() {
+    const slots = getSlots();
+    const expiringSoon = slots.filter(s => checkIfExpiringSoon(s));
+
+    if (expiringSoon.length > 0 && !sessionStorage.getItem('expiryWarningShown')) {
+        const message = `${expiringSoon.length} booking(s) expiring in 30 minutes!`;
+        showNotification(message, 'warning');
+        sessionStorage.setItem('expiryWarningShown', 'true');
+
+        // Clear flag after 5 minutes
+        setTimeout(() => sessionStorage.removeItem('expiryWarningShown'), 300000);
+    }
 }
 
 function animateValue(obj, start, end, duration) {
