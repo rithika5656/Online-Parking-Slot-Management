@@ -149,18 +149,36 @@ function renderBookings() {
     noBookings.style.display = 'none';
     document.getElementById('bookings-table').style.display = 'table';
 
+    const vehicleIcons = {
+        car: '🚗',
+        bike: '🏍️',
+        truck: '🚚',
+        suv: '🚙'
+    };
+
     bookingsBody.innerHTML = occupiedSlots.map((slot, index) => `
         <tr style="animation: slideDown 0.3s ease backwards ${index * 0.1}s">
             <td>${slot.slotNumber}</td>
-            <td>${slot.vehicleNumber}</td>
-            <td>${slot.ownerName}</td>
+            <td>
+                ${vehicleIcons[slot.vehicleType] || '🚗'} ${slot.vehicleNumber}
+                <br><small style="color: var(--text-muted);">${(slot.vehicleType || 'car').toUpperCase()}</small>
+            </td>
+            <td>
+                ${slot.ownerName}
+                ${slot.ownerPhone ? `<br><small style="color: var(--text-muted);">📞 ${slot.ownerPhone}</small>` : ''}
+            </td>
             <td>${new Date(slot.bookedAt).toLocaleString()}</td>
             <td>${slot.duration}h</td>
             <td>₹${slot.amount}</td>
             <td>
-                <button class="btn-release" onclick="releaseSlot(${slot.id})">
-                    Release
-                </button>
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="btn-release" onclick="releaseSlot(${slot.id})" title="Release slot">
+                        <i class="fas fa-sign-out-alt"></i> Release
+                    </button>
+                    <button class="btn-print" onclick="printReceipt(${slot.id})" title="Print receipt">
+                        <i class="fas fa-print"></i>
+                    </button>
+                </div>
             </td>
         </tr>
     `).join('');
