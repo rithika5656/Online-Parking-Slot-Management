@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartPark - Car Parking Management</title>
+    <title>SmartPark - Car & Two-Wheeler Parking</title>
     <!-- Google Fonts -->
     <link
         href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap"
@@ -73,7 +73,13 @@
                         <div class="grid-controls">
                             <div class="filter-buttons">
                                 <button class="filter-btn active" onclick="filterSlots('all')" data-filter="all">
-                                    <i class="fas fa-car"></i> All Cars
+                                    <i class="fas fa-th"></i> All
+                                </button>
+                                <button class="filter-btn" onclick="filterSlots('car')" data-filter="car">
+                                    🚗 Cars
+                                </button>
+                                <button class="filter-btn" onclick="filterSlots('bike')" data-filter="bike">
+                                    🏍️ Two-Wheelers
                                 </button>
                             </div>
                             <div class="search-vehicle">
@@ -96,7 +102,9 @@
                     <div class="form-group">
                         <label for="vehicle-type">Vehicle Type:</label>
                         <select id="vehicle-type" required aria-label="Select vehicle type">
-                            <option value="car" selected>🚗 Car (₹50/hr)</option>
+                            <option value="">-- Select Vehicle Type --</option>
+                            <option value="car">🚗 Car (₹50/hr)</option>
+                            <option value="bike">🏍️ Two-Wheeler (₹20/hr)</option>
                         </select>
                     </div>
                     <div class="form-group">
