@@ -222,12 +222,13 @@ function populateSlotDropdown() {
         option.value = slot.id;
         option.textContent = slot.slotNumber;
         slotSelect.appendChild(option);
+        ```
     });
 }
 
 // Calculate price based on vehicle type and duration
 function calculatePrice(vehicleType, duration) {
-    const rate = PRICING[vehicleType] || 50;
+    const rate = PRICING[vehicleType] || PRICING.car;
     return rate * duration;
 }
 
@@ -254,7 +255,7 @@ function renderBookings() {
     };
 
     bookingsBody.innerHTML = occupiedSlots.map((slot, index) => `
-        <tr style="animation: slideDown 0.3s ease backwards ${index * 0.1}s">
+            < tr style = "animation: slideDown 0.3s ease backwards ${index * 0.1}s" >
             <td>${slot.slotNumber}</td>
             <td>
                 ${vehicleIcons[slot.vehicleType] || '🚗'} ${slot.vehicleNumber}
@@ -277,8 +278,8 @@ function renderBookings() {
                     </button>
                 </div>
             </td>
-        </tr>
-    `).join('');
+        </tr >
+            `).join('');
 }
 
 // Book a slot
@@ -349,7 +350,7 @@ function simulateParking(slotId) {
         return;
     }
 
-    const slotEl = document.querySelector(`.slot[data-id="${slotId}"]`);
+    const slotEl = document.querySelector(`.slot[data - id="${slotId}"]`);
     if (!slotEl) {
         console.error("Target slot for animation not found:", slotId);
         return;
@@ -359,7 +360,7 @@ function simulateParking(slotId) {
     const car = document.createElement('div');
     car.className = 'moving-car';
     car.innerHTML = `
-        <div class="car-body">
+            < div class="car-body" >
             <div class="car-lights-front">
                 <div class="car-light"></div>
                 <div class="car-light"></div>
@@ -368,16 +369,16 @@ function simulateParking(slotId) {
                 <div class="car-light-red"></div>
                 <div class="car-light-red"></div>
             </div>
-        </div>
-    `;
+        </div >
+            `;
     document.body.appendChild(car);
 
     // Initial Position (Bottom Center of Screen)
     const startX = window.innerWidth / 2 - 30; // Half car width
     const startY = window.innerHeight + 100; // Below screen
 
-    car.style.left = `${startX}px`;
-    car.style.top = `${startY}px`;
+    car.style.left = `${ startX } px`;
+    car.style.top = `${ startY } px`;
     car.style.transform = `scale(2) rotate(0deg)`; // Start Big
 
     // Get Target Slot Position
@@ -391,14 +392,14 @@ function simulateParking(slotId) {
     // Step 1: Drive In
     requestAnimationFrame(() => {
         car.style.transition = 'top 1s ease-out, transform 1s ease-out';
-        car.style.top = `${window.innerHeight - 200}px`; // Drive to 'entry' point
+        car.style.top = `${ window.innerHeight - 200 } px`; // Drive to 'entry' point
         car.style.transform = `scale(1.5)`;
 
         // Step 2: Drive to Slot
         setTimeout(() => {
             car.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1)';
-            car.style.left = `${targetX}px`;
-            car.style.top = `${targetY}px`;
+            car.style.left = `${ targetX } px`;
+            car.style.top = `${ targetY } px`;
             car.style.transform = `scale(1) rotate(0deg)`; // Adjust rotation if needed based on slot direction
 
             // Step 3: Parked Effect
@@ -423,9 +424,9 @@ function sendConfirmationEmail(details) {
 
     // Simulate Satellite Transmission Logic (Visual effect)
     if (consoleElement) {
-        consoleElement.innerHTML = `<span style="color: var(--primary)">ENCRYPTING DATA...</span>`;
+        consoleElement.innerHTML = `< span style = "color: var(--primary)" > ENCRYPTING DATA...</span > `;
         setTimeout(() => {
-            consoleElement.innerHTML = `<span style="color: var(--primary)">CONNECTING TO RELAY...</span>`;
+            consoleElement.innerHTML = `< span style = "color: var(--primary)" > CONNECTING TO RELAY...</span > `;
         }, 800);
     }
 
@@ -436,7 +437,7 @@ function sendConfirmationEmail(details) {
     // 2. Check Configuration
     if (serviceID && templateID && publicKey && typeof emailjs !== 'undefined') {
 
-        if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--primary)">CONNECTING TO SECURE EMAIL SERVER...</span>`;
+        if (consoleElement) consoleElement.innerHTML = `< span style = "color: var(--primary)" > CONNECTING TO SECURE EMAIL SERVER...</span > `;
 
         // Re-init with user key if needed
         emailjs.init(publicKey);
@@ -447,24 +448,24 @@ function sendConfirmationEmail(details) {
             slot_number: details.slot,
             vehicle_number: details.vehicle,
             booking_time: details.time,
-            message: `Your booking for vehicle ${details.vehicle} at slot ${details.slot} is confirmed. Duration: ${details.duration}h. Amount: ₹${details.amount}.`
+            message: `Your booking for vehicle ${ details.vehicle } at slot ${ details.slot } is confirmed.Duration: ${ details.duration } h.Amount: ₹${ details.amount }.`
         };
 
         emailjs.send(serviceID, templateID, templateParams)
             .then(() => {
                 console.log('SUCCESS!');
-                if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--success)">REAL EMAIL SENT SUCCESSFULLY!</span>`;
-                showNotification(`Email sent to ${details.email}`, 'success');
+                if (consoleElement) consoleElement.innerHTML = `< span style = "color: var(--success)" > REAL EMAIL SENT SUCCESSFULLY!</span > `;
+                showNotification(`Email sent to ${ details.email } `, 'success');
             }, (error) => {
                 console.log('FAILED...', error);
-                if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--danger)">EMAIL FAILED. CHECK SETTINGS.</span>`;
+                if (consoleElement) consoleElement.innerHTML = `< span style = "color: var(--danger)" > EMAIL FAILED.CHECK SETTINGS.</span > `;
                 // If fail, show modal
                 setTimeout(() => showVirtualEmailModal(details), 1000);
             });
 
     } else {
         // Fallback: Show Virtual Email Modal + Prompt to Configure
-        if (consoleElement) consoleElement.innerHTML = `<span style="color: var(--text-muted)">SIMULATING TRANSMISSION (NO KEYS)...</span>`;
+        if (consoleElement) consoleElement.innerHTML = `< span style = "color: var(--text-muted)" > SIMULATING TRANSMISSION(NO KEYS)...</span > `;
         setTimeout(() => {
             showVirtualEmailModal(details);
             showNotification('Tip: Use Settings ⚙️ to enable real emails!', 'info');
@@ -480,17 +481,17 @@ function openSettings() {
     const settings = JSON.parse(localStorage.getItem('emailSettings')) || {};
 
     const modalHTML = `
-        <div class="email-modal-overlay">
+        < div class="email-modal-overlay" >
             <div class="config-modal">
                 <h3>⚙️ System Configuration</h3>
-                
+
                 <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-bottom:20px;">
                     <label style="display:flex; align-items:center; cursor:pointer;">
                         <input type="checkbox" id="cfg-lite" ${settings.liteMode ? 'checked' : ''} style="width:20px; height:20px; margin-right:10px;">
-                        <span>
-                            <strong style="display:block; color:var(--primary)">Lite Mode (Fix Recording Issues)</strong>
-                            <span style="font-size:0.8rem; color:#aaa">Disables 3D animations to prevent screen recorder crashes.</span>
-                        </span>
+                            <span>
+                                <strong style="display:block; color:var(--primary)">Lite Mode (Fix Recording Issues)</strong>
+                                <span style="font-size:0.8rem; color:#aaa">Disables 3D animations to prevent screen recorder crashes.</span>
+                            </span>
                     </label>
                 </div>
 
@@ -510,8 +511,8 @@ function openSettings() {
                 <a href="https://dashboard.emailjs.com/admin" target="_blank" class="help-link">Where do I find these?</a>
                 <button class="btn-close-email" style="background:transparent; color:#888; margin-top:10px; width:100%" onclick="this.closest('.email-modal-overlay').remove()">Cancel</button>
             </div>
-        </div>
-    `;
+        </div >
+        `;
 
     const range = document.createRange();
     const fragment = range.createContextualFragment(modalHTML);
@@ -542,7 +543,7 @@ function showVirtualEmailModal(details) {
     if (existing) existing.remove();
 
     const modalHTML = `
-        <div class="email-modal-overlay">
+        < div class="email-modal-overlay" >
             <div class="email-modal">
                 <div class="email-header">
                     <h3>Booking Confirmation - Slot ${details.slot}</h3>
@@ -569,22 +570,22 @@ function showVirtualEmailModal(details) {
                         <p>Your parking slot has been successfully booked!</p>
                         <div style="background:#f5f5f5; padding:15px; border-radius:4px; margin:15px 0;">
                             <strong>Vehicle:</strong> ${details.vehicle}<br>
-                            <strong>Slot:</strong> <span style="color:#1a73e8; font-weight:bold">${details.slot}</span><br>
-                            <strong>Status:</strong> Confirmed
-                        </div>
-                        
-                        <a href="#" class="btn-download-token" onclick="downloadToken('${details.slot}', '${details.vehicle}', '${details.name}', '${details.time}')">
-                            <i class="fas fa-download"></i> Download Token
-                        </a>
+                                <strong>Slot:</strong> <span style="color:#1a73e8; font-weight:bold">${details.slot}</span><br>
+                                    <strong>Status:</strong> Confirmed
+                                </div>
 
-                        <p style="margin-top:15px">Thank you for choosing SmartPark.</p>
+                                <a href="#" class="btn-download-token" onclick="downloadToken('${details.slot}', '${details.vehicle}', '${details.name}', '${details.time}')">
+                                    <i class="fas fa-download"></i> Download Token
+                                </a>
+
+                                <p style="margin-top:15px">Thank you for choosing SmartPark.</p>
+                        </div>
+                    </div>
+                    <div class="email-footer">
+                        <button class="btn-close-email" onclick="this.closest('.email-modal-overlay').remove()">Close</button>
                     </div>
                 </div>
-                <div class="email-footer">
-                    <button class="btn-close-email" onclick="this.closest('.email-modal-overlay').remove()">Close</button>
-                </div>
             </div>
-        </div>
     `;
 
     const range = document.createRange();
@@ -593,7 +594,7 @@ function showVirtualEmailModal(details) {
 
     // Also try to open mailto as a backup for "real" feeling
     // setTimeout(() => {
-    //     window.location.href = `mailto:${details.email}?subject=Booking%20Confirmation&body=Your%20slot%20${details.slot}%20is%20booked.`;
+    //     window.location.href = `mailto:${ details.email }?subject = Booking % 20Confirmation & body=Your % 20slot % 20${ details.slot }% 20is % 20booked.`;
     // }, 1000);
 }
 
@@ -618,7 +619,7 @@ Slot Details:
 ----------------------------------------
 
 Please show this token at the entry gate.
-    
+
 ========================================
     Powering Smart Campuses
 ========================================
@@ -786,7 +787,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderParkingGrid();
         updateStats();
 
-        // Settings Button only for dashboard primarily, but let's keep it global if needed. 
+        // Settings Button only for dashboard primarily, but let's keep it global if needed.
         // Actually user wants exactly "old version". In "old version" settings might be everywhere?
         // Let's attach settings button to body regardless.
     }
@@ -838,7 +839,7 @@ function openSettings() {
         <div class="email-modal-overlay">
             <div class="config-modal">
                 <h3>⚙️ System Configuration</h3>
-                
+
                 <div class="config-group">
                      <label>🎨 Interface Theme</label>
                      <div class="modal-theme-options" id="theme-options-container">
@@ -868,7 +869,7 @@ function openSettings() {
                     <label>Template ID</label>
                     <input type="text" id="cfg-template" value="${settings.templateID || ''}">
                 </div>
-                
+
                 <button class="btn-save-config" onclick="saveSettings()">Save & Close</button>
             </div>
         </div>
@@ -1175,7 +1176,7 @@ function showVirtualEmailModal(details) {
                     <div class="email-content">
                         <p>Hello <strong>${details.name}</strong>,</p>
                         <p>Your parking slot has been successfully booked!</p>
-                        
+
                         <!-- QR Code -->
                         <div style="text-align:center;">
                             <img src="${qrUrl}" class="qr-code-img" alt="Booking QR Code">
@@ -1189,7 +1190,7 @@ function showVirtualEmailModal(details) {
                             <strong>Amount Paid:</strong> ₹${details.amount}<br>
                             <strong>Status:</strong> Confirmed
                         </div>
-                        
+
                         <a href="#" class="btn-download-token" onclick="downloadToken('${details.slot}', '${details.vehicle}', '${details.name}', '${details.time}')">
                             <i class="fas fa-download"></i> Download Token
                         </a>
@@ -1501,7 +1502,7 @@ function initCursor() {
         cursorDot.style.left = `${posX}px`;
         cursorDot.style.top = `${posY}px`;
 
-        // Outline follows with slight delay (animation is handled by CSS transition usually, 
+        // Outline follows with slight delay (animation is handled by CSS transition usually,
         // but let's do direct assignment for smoothness with CSS transition property already set)
         cursorOutline.animate({
             left: `${posX}px`,
