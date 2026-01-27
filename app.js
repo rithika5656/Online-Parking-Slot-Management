@@ -1,10 +1,11 @@
 // Parking Slot Management Application
 const TOTAL_SLOTS = 20;
 
-// Pricing Configuration - Car Parking Only
-const HOURLY_RATE = 50; // ₹50 per hour for cars
+// Pricing Configuration - Cars & Two-Wheelers
+const HOURLY_RATE = 50; // Default rate for cars
 const PRICING = {
-    car: 50  // Car parking only
+    car: 50,   // ₹50 per hour
+    bike: 20   // ₹20 per hour (two-wheelers)
 };
 
 // DOM Elements
