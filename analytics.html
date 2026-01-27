@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - SmartPark</title>
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <canvas id="particles-canvas"></canvas>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-parking"></i>
+                <h1>SmartPark</h1>
+            </div>
+            <p>Intelligent Parking Management System</p>
+            <div id="system-console" class="system-console"></div>
+        </header>
+
+        <nav>
+            <a href="index.html">Dashboard</a>
+            <a href="bookings.html">Bookings</a>
+            <a href="analytics.html" class="active">Analytics</a>
+        </nav>
+
+        <main style="display: block;">
+            <section class="glass-panel">
+                <h2><i class="fas fa-chart-line"></i> Analytics Dashboard</h2>
+
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>Total Revenue</h3>
+                        <div class="analytics-value" id="total-revenue">₹0</div>
+                        <small>All-time earnings</small>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Total Bookings</h3>
+                        <div class="analytics-value" id="total-bookings">0</div>
+                        <small>Completed bookings</small>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Average Duration</h3>
+                        <div class="analytics-value" id="avg-duration">0h</div>
+                        <small>Per booking</small>
+                    </div>
+
+                    <div class="analytics-card">
+                        <h3>Occupancy Rate</h3>
+                        <div class="analytics-value" id="occupancy-rate">0%</div>
+                        <small>Current utilization</small>
+                    </div>
+                </div>
+
+                <div class="analytics-section">
+                    <h3>Vehicle Type Distribution</h3>
+                    <div id="vehicle-distribution" class="distribution-chart"></div>
+                </div>
+
+                <div class="analytics-section">
+                    <h3>Recent Activity</h3>
+                    <div id="recent-activity" class="activity-log"></div>
+                </div>
+
+                <div class="analytics-actions">
+                    <button class="btn-action" onclick="exportAnalytics()">
+                        <i class="fas fa-download"></i> Export Report
+                    </button>
+                    <button class="btn-action" onclick="clearHistory()">
+                        <i class="fas fa-trash"></i> Clear History
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 SmartPark | Premium Campus & Apartment Parking Solution</p>
+        </footer>
+    </div>
+    <script src="app.js"></script>
+    <script src="analytics.js"></script>
+</body>
+
+</html>
