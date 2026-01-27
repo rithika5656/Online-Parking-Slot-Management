@@ -417,7 +417,7 @@ h2::before {
 
 /* Forms */
 .form-group {
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     position: relative;
 }
 
@@ -432,7 +432,8 @@ h2::before {
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.form-group textarea {
     width: 100%;
     padding: 1.2rem;
     background: rgba(0, 0, 0, 0.3);
@@ -444,8 +445,14 @@ h2::before {
     transition: 0.3s;
 }
 
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
 .form-group input:focus,
-.form-group select:focus {
+.form-group select:focus,
+.form-group textarea:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 20px var(--primary-dim);
@@ -454,8 +461,23 @@ h2::before {
 
 .form-group select option {
     background: #050511;
-    /* Dark background matches theme */
     color: #fff;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.form-group input:invalid:not(:placeholder-shown) {
+    border-color: var(--danger);
+}
+
+.form-group input:valid:not(:placeholder-shown) {
+    border-color: var(--success);
 }
 
 .btn-book {
