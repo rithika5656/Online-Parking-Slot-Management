@@ -58,24 +58,40 @@ function saveSlots(slots) {
 }
 
 // Render parking grid
-function renderParkingGrid() {
+function renderParkingGrid(filterType = 'all') {
     const slots = getSlots();
     slotsContainer.innerHTML = '';
 
-    slots.forEach(slot => {
+    // Filter slots based on type
+    const filteredSlots = filterType === 'all' ? slots :
+        slots.filter(s => s.isOccupied && s.vehicleType === filterType);
+
+    const displaySlots = filterType === 'all' ? slots : filteredSlots;
+
+    displaySlots.forEach(slot => {
         const slotDiv = document.createElement('div');
-        slotDiv.className = `slot ${slot.isOccupied ? 'occupied' : 'available'}`;
-        slotDiv.dataset.id = slot.id; // Added for animation targeting
+        const isExpiringSoon = checkIfExpiringSoon(slot);
+        const statusClass = slot.isOccupied ? 'occupied' : 'available';
+        const expiryClass = isExpiringSoon ? 'expiring-soon' : '';
+
+        slotDiv.className = `slot ${statusClass} ${expiryClass}`;
+        slotDiv.dataset.id = slot.id;
+        slotDiv.dataset.vehicleNumber = slot.vehicleNumber || '';
+
+        const vehicleIcon = slot.isOccupied ? getVehicleIcon(slot.vehicleType) : 'fa-parking';
+        const timeRemaining = slot.isOccupied ? getTimeRemaining(slot.expiresAt) : '';
+
         slotDiv.innerHTML = `
             <div class="slot-header">
                 <span class="slot-id">${slot.slotNumber}</span>
-                <span class="status-dot"></span>
+                <span class="status-dot ${isExpiringSoon ? 'warning' : ''}"></span>
             </div>
             <div class="slot-body">
-                <i class="fas ${slot.isOccupied ? 'fa-car-side' : 'fa-parking'}"></i>
+                <i class="fas ${vehicleIcon}"></i>
+                ${slot.isOccupied ? `<div class="vehicle-badge">${slot.vehicleType?.toUpperCase() || 'CAR'}</div>` : ''}
             </div>
             <div class="slot-footer">
-                ${slot.isOccupied ? 'Occupied' : 'Allocated'}
+                ${slot.isOccupied ? (timeRemaining || 'Occupied') : 'Available'}
             </div>
         `;
 
@@ -84,10 +100,55 @@ function renderParkingGrid() {
                 slotSelect.value = slot.id;
                 document.getElementById('booking-form').scrollIntoView({ behavior: 'smooth' });
             });
+        } else {
+            slotDiv.title = `${slot.vehicleNumber} - ${slot.ownerName}`;
         }
 
         slotsContainer.appendChild(slotDiv);
     });
+
+    // Update filter count
+    updateFilterCount(filterType, displaySlots.length);
+}
+
+function getVehicleIcon(type) {
+    const icons = {
+        car: 'fa-car-side',
+        bike: 'fa-motorcycle',
+        truck: 'fa-truck',
+        suv: 'fa-truck-pickup'
+    };
+    return icons[type] || 'fa-car-side';
+}
+
+function checkIfExpiringSoon(slot) {
+    if (!slot.isOccupied || !slot.expiresAt) return false;
+    const now = new Date();
+    const expiry = new Date(slot.expiresAt);
+    const minutesLeft = (expiry - now) / (1000 * 60);
+    return minutesLeft > 0 && minutesLeft <= 30; // 30 minutes warning
+}
+
+function getTimeRemaining(expiresAt) {
+    if (!expiresAt) return '';
+    const now = new Date();
+    const expiry = new Date(expiresAt);
+    const diff = expiry - now;
+
+    if (diff <= 0) return 'EXPIRED';
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    return `${minutes}m left`;
+}
+
+function updateFilterCount(filterType, count) {
+    const filterBadge = document.getElementById('filter-count');
+    if (filterBadge) {
+        filterBadge.textContent = filterType === 'all' ? 'All Slots' : `${count} ${filterType.toUpperCase()}`;
+    }
 }
 
 // Update statistics
