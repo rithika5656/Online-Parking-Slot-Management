@@ -571,12 +571,33 @@ tr:hover td {
     cursor: pointer;
     transition: 0.3s;
     text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .btn-release:hover {
     background: var(--danger);
     color: #fff;
     box-shadow: 0 0 15px var(--danger-glow);
+}
+
+.btn-print {
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    border-radius: 4px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-print:hover {
+    background: var(--primary);
+    color: #000;
+    box-shadow: 0 0 15px var(--primary-glow);
 }
 
 #no-bookings {
