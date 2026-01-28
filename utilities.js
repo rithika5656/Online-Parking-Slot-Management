@@ -249,9 +249,108 @@ function enableAutoSave() {
 
 enableAutoSave();
 
+// Hero Section Utilities
+function scrollToBooking() {
+    const bookingForm = document.getElementById('booking-form');
+    if (bookingForm) {
+        bookingForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Add a subtle flash animation
+        bookingForm.style.animation = 'highlight-pulse 1s ease-in-out';
+        setTimeout(() => {
+            bookingForm.style.animation = '';
+        }, 1000);
+    }
+}
+
+function scrollToSlots() {
+    const slotsContainer = document.getElementById('slots-container');
+    if (slotsContainer) {
+        slotsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Update hero stats in sync with main stats
+function updateHeroStats() {
+    const heroTotal = document.getElementById('hero-total');
+    const heroAvailable = document.getElementById('hero-available');
+    const heroOccupied = document.getElementById('hero-occupied');
+
+    const mainTotal = document.getElementById('total-count');
+    const mainAvailable = document.getElementById('available-count');
+    const mainOccupied = document.getElementById('occupied-count');
+
+    if (heroTotal && mainTotal) {
+        animateNumber(heroTotal, parseInt(mainTotal.textContent) || 0);
+    }
+    if (heroAvailable && mainAvailable) {
+        animateNumber(heroAvailable, parseInt(mainAvailable.textContent) || 0);
+    }
+    if (heroOccupied && mainOccupied) {
+        animateNumber(heroOccupied, parseInt(mainOccupied.textContent) || 0);
+    }
+}
+
+// Animate numbers with counting effect
+function animateNumber(element, targetValue) {
+    const currentValue = parseInt(element.textContent) || 0;
+    const duration = 1000; // 1 second
+    const steps = 30;
+    const increment = (targetValue - currentValue) / steps;
+    const stepDuration = duration / steps;
+
+    let currentStep = 0;
+
+    const interval = setInterval(() => {
+        currentStep++;
+        const newValue = Math.round(currentValue + (increment * currentStep));
+        element.textContent = newValue;
+
+        if (currentStep >= steps) {
+            element.textContent = targetValue;
+            clearInterval(interval);
+        }
+    }, stepDuration);
+}
+
+// Initialize hero section when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeHeroSection);
+} else {
+    initializeHeroSection();
+}
+
+function initializeHeroSection() {
+    // Wait a bit for main stats to load
+    setTimeout(() => {
+        updateHeroStats();
+    }, 500);
+
+    // Set up observer to watch for changes in main stats
+    const mainStatsObserver = new MutationObserver(() => {
+        updateHeroStats();
+    });
+
+    const statsElements = [
+        document.getElementById('total-count'),
+        document.getElementById('available-count'),
+        document.getElementById('occupied-count')
+    ].filter(Boolean);
+
+    statsElements.forEach(element => {
+        mainStatsObserver.observe(element, {
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
+    });
+}
+
 // Export all utilities
 window.ThemeManager = ThemeManager;
 window.ReservationManager = ReservationManager;
 window.PerformanceMonitor = PerformanceMonitor;
 window.AccessibilityHelper = AccessibilityHelper;
 window.StorageManager = StorageManager;
+window.scrollToBooking = scrollToBooking;
+window.scrollToSlots = scrollToSlots;
+window.updateHeroStats = updateHeroStats;
