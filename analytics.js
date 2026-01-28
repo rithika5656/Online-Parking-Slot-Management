@@ -44,10 +44,10 @@ function renderVehicleDistribution(history) {
     container.innerHTML = '';
 
     const icons = {
-        car: '🚗',
-        bike: '🏍️',
-        truck: '🚚',
-        suv: '🚙'
+        car: '',
+        bike: '',
+        truck: '',
+        suv: ''
     };
 
     Object.entries(distribution).forEach(([type, count]) => {
@@ -55,7 +55,7 @@ function renderVehicleDistribution(history) {
         bar.className = 'distribution-bar';
         const percentage = history.length > 0 ? (count / history.length * 100).toFixed(1) : 0;
         bar.innerHTML = `
-            <div class="dist-label">${icons[type] || '🚗'} ${type.toUpperCase()}</div>
+            <div class="dist-label">${icons[type] || ''} ${type.toUpperCase()}</div>
             <div class="dist-bar-container">
                 <div class="dist-bar-fill" style="width: ${percentage}%"></div>
             </div>
