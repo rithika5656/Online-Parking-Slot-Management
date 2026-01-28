@@ -247,22 +247,22 @@ function renderBookings() {
     document.getElementById('bookings-table').style.display = 'table';
 
     const vehicleIcons = {
-        car: '🚗',
-        bike: '🏍️',
-        truck: '🚚',
-        suv: '🚙'
+        car: '',
+        bike: '',
+        truck: '',
+        suv: ''
     };
 
     bookingsBody.innerHTML = occupiedSlots.map((slot, index) => `
             < tr style = "animation: slideDown 0.3s ease backwards ${index * 0.1}s" >
             <td>${slot.slotNumber}</td>
             <td>
-                ${vehicleIcons[slot.vehicleType] || '🚗'} ${slot.vehicleNumber}
+                ${vehicleIcons[slot.vehicleType] || ''} ${slot.vehicleNumber}
                 <br><small style="color: var(--text-muted);">${(slot.vehicleType || 'car').toUpperCase()}</small>
             </td>
             <td>
                 ${slot.ownerName}
-                ${slot.ownerPhone ? `<br><small style="color: var(--text-muted);">📞 ${slot.ownerPhone}</small>` : ''}
+                ${slot.ownerPhone ? `<br><small style="color: var(--text-muted);">${slot.ownerPhone}</small>` : ''}
             </td>
             <td>${new Date(slot.bookedAt).toLocaleString()}</td>
             <td>${slot.duration}h</td>
