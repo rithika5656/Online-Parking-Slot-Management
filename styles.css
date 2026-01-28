@@ -708,13 +708,15 @@ nav a.active {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 2000;
     animation: fadeIn 0.3s ease;
+    cursor: pointer;
 }
 
 .email-modal {
@@ -722,11 +724,13 @@ nav a.active {
     color: #333;
     width: 90%;
     max-width: 600px;
-    border-radius: 8px;
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     font-family: Arial, sans-serif;
     animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: default;
+    position: relative;
 }
 
 .email-header {
@@ -748,8 +752,27 @@ nav a.active {
 
 .email-close {
     cursor: pointer;
-    color: #5f6368;
-    font-size: 1.2rem;
+    color: #dc3545;
+    font-size: 1.8rem;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(220, 53, 69, 0.1);
+    transition: all 0.3s ease;
+    font-weight: bold;
+    line-height: 1;
+    border: 2px solid transparent;
+}
+
+.email-close:hover {
+    background: #dc3545;
+    color: white;
+    transform: rotate(90deg) scale(1.1);
+    border-color: #dc3545;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
 }
 
 .email-body {
