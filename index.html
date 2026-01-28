@@ -45,6 +45,74 @@
             <a href="reports.html">Reports</a>
         </nav>
 
+        <!-- Enhanced Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-bolt"></i>
+                    <span>Real-Time Parking Intelligence</span>
+                </div>
+                <h2 class="hero-title">Next-Generation Parking Management</h2>
+                <p class="hero-description">
+                    Experience seamless parking with our AI-powered slot management system.
+                    Real-time availability, instant booking, and smart notifications.
+                </p>
+                <div class="hero-stats-quick">
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-icon">
+                            <i class="fas fa-car-side"></i>
+                        </div>
+                        <div class="hero-stat-info">
+                            <span class="hero-stat-number" id="hero-total">0</span>
+                            <span class="hero-stat-label">Total Slots</span>
+                        </div>
+                    </div>
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-icon success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="hero-stat-info">
+                            <span class="hero-stat-number" id="hero-available">0</span>
+                            <span class="hero-stat-label">Available Now</span>
+                        </div>
+                    </div>
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-icon danger">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="hero-stat-info">
+                            <span class="hero-stat-number" id="hero-occupied">0</span>
+                            <span class="hero-stat-label">In Use</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-actions">
+                    <button class="hero-btn primary" onclick="scrollToBooking()">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Book a Slot Now</span>
+                    </button>
+                    <button class="hero-btn secondary" onclick="scrollToSlots()">
+                        <i class="fas fa-th-large"></i>
+                        <span>View All Slots</span>
+                    </button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-card card-1">
+                    <i class="fas fa-car"></i>
+                    <span>Premium Cars</span>
+                </div>
+                <div class="floating-card card-2">
+                    <i class="fas fa-motorcycle"></i>
+                    <span>Two-Wheelers</span>
+                </div>
+                <div class="floating-card card-3">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure Parking</span>
+                </div>
+            </div>
+        </section>
+
         <main>
             <div class="dashboard-layout">
                 <section class="stats">
