@@ -542,11 +542,13 @@ function showVirtualEmailModal(details) {
     if (existing) existing.remove();
 
     const modalHTML = `
-        < div class="email-modal-overlay" >
+        <div class="email-modal-overlay">
             <div class="email-modal">
+                <!-- Close button in top-right corner -->
+                <span class="email-close-top" onclick="this.closest('.email-modal-overlay').remove()">&times;</span>
+                
                 <div class="email-header">
                     <h3>Booking Confirmation - Slot ${details.slot}</h3>
-                    <span class="email-close" onclick="this.closest('.email-modal-overlay').remove()">&times;</span>
                 </div>
                 <div class="email-body">
                     <div class="email-logo">SmartPark</div>
@@ -570,6 +572,7 @@ function showVirtualEmailModal(details) {
                         <div style="background:#f5f5f5; padding:15px; border-radius:4px; margin:15px 0;">
                             <strong>Vehicle:</strong> ${details.vehicle}<br>
                                 <strong>Slot:</strong> <span style="color:#1a73e8; font-weight:bold">${details.slot}</span><br>
+                                    <strong>Duration:</strong> ${details.duration || '1'} hours<br>
                                     <strong>Status:</strong> Confirmed
                                 </div>
 
@@ -593,35 +596,75 @@ function showVirtualEmailModal(details) {
 
     // Also try to open mailto as a backup for "real" feeling
     // setTimeout(() => {
-    //     window.location.href = `mailto:${ details.email }?subject = Booking % 20Confirmation & body=Your % 20slot % 20${ details.slot }% 20is % 20booked.`;
+    //     window.location.href = `mailto:${details.email}?subject=Booking%20Confirmation&body=Your%20slot%20${details.slot}%20is%20booked.`;
     // }, 1000);
 }
 
 // Function to download booking token
 function downloadToken(slot, vehicle, name, time) {
     const tokenContent = `
-========================================
-       SMARTPARK - PARKING TOKEN
-========================================
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║     ███████╗███╗   ███╗ █████╗ ██████╗ ████████╗             ║
+║     ██╔════╝████╗ ████║██╔══██╗██╔══██╗╚══██╔══╝             ║
+║     ███████╗██╔████╔██║███████║██████╔╝   ██║                ║
+║     ╚════██║██║╚██╔╝██║██╔══██║██╔══██╗   ██║                ║
+║     ███████║██║ ╚═╝ ██║██║  ██║██║  ██║   ██║                ║
+║     ╚══════╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝                ║
+║                                                               ║
+║            ██████╗  █████╗ ██████╗ ██╗  ██╗                  ║
+║            ██╔══██╗██╔══██╗██╔══██╗██║ ██╔╝                  ║
+║            ██████╔╝███████║██████╔╝█████╔╝                   ║
+║            ██╔═══╝ ██╔══██║██╔══██╗██╔═██╗                   ║
+║            ██║     ██║  ██║██║  ██║██║  ██╗                  ║
+║            ╚═╝     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝                  ║
+║                                                               ║
+║         ⓘ  OFFICIAL PARKING TOKEN & RECEIPT  ⓘ               ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
 
-Booking Reference: #SP-${Date.now().toString().slice(-6)}
-Date: ${time}
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃                     BOOKING CONFIRMATION                      ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-----------------------------------------
-User Details:
-  Name:    ${name}
-  Vehicle: ${vehicle}
+📋 Booking Reference: #SP-${Date.now().toString().slice(-6)}
+📅 Date & Time: ${time}
+✅ Status: CONFIRMED
 
-Slot Details:
-  Slot No: ${slot}
-  Status:  CONFIRMED
-----------------------------------------
+┌───────────────────────────────────────────────────────────────┐
+│  👤 CUSTOMER INFORMATION                                      │
+└───────────────────────────────────────────────────────────────┘
+   Name:             ${name}
+   Vehicle Number:   ${vehicle}
 
-Please show this token at the entry gate.
+┌───────────────────────────────────────────────────────────────┐
+│  🅿️  PARKING SLOT DETAILS                                     │
+└───────────────────────────────────────────────────────────────┘
+   Slot Number:      ${slot}
+   Slot Status:      RESERVED & CONFIRMED
+   
+┌───────────────────────────────────────────────────────────────┐
+│  ℹ️  IMPORTANT INFORMATION                                     │
+└───────────────────────────────────────────────────────────────┘
+   • Please present this token at the entry gate
+   • Keep this receipt for your records
+   • Contact support for any assistance
+   • Follow parking guidelines and safety rules
 
-========================================
-    Powering Smart Campuses
-========================================
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+              🌟 Thank you for choosing SmartPark! 🌟
+           
+                   Powering Smart Campuses
+              Next-Generation Parking Management
+                    
+             📧 support@smartpark.system
+             🌐 www.smartpark.system
+             📞 +1-800-SMART-PARK
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+              © ${new Date().getFullYear()} SmartPark. All rights reserved.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     `;
 
     const blob = new Blob([tokenContent], { type: 'text/plain' });
@@ -632,7 +675,7 @@ Please show this token at the entry gate.
     a.click();
     window.URL.revokeObjectURL(url);
 
-    showNotification('Token downloaded successfully!', 'success');
+    showNotification('Token downloaded successfully! 🎫', 'success');
 }
 
 function openMailClient(details) {
